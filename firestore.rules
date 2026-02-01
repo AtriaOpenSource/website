@@ -32,8 +32,12 @@ service cloud.firestore {
       // In production, add proper admin verification
       allow read: if request.auth != null;
       
-      // No one can update or delete submissions
-      allow update, delete: if false;
+      // Only authenticated users (admins) can delete submissions
+      // In production, add proper admin verification
+      allow delete: if request.auth != null;
+      
+      // No one can update submissions
+      allow update: if false;
     }
   }
 }

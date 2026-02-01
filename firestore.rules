@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      // In production, you should check against a Firestore collection or custom claims
+      // For now, this is managed via environment variables on the client side
+      return request.auth != null;
+    }
+    
+    // Forms collection
+    match /forms/{formSlug} {
+      // Anyone can read forms (to display them)
+      allow read: if true;
+      
+      // Only authenticated users (admins) can create/update/delete forms
+      // In production, add proper admin verification
+      allow create, update, delete: if request.auth != null;
+    }
+    
+    // Submissions collection
+    match /submissions/{submissionId} {
+      // Allow authenticated users to create submissions
+      // Only for forms they haven't submitted to yet (checked in app logic)
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.userEmail == request.auth.token.email;
+      
+      // Only authenticated users (admins) can read submissions
+      // In production, add proper admin verification
+      allow read: if request.auth != null;
+      
+      // No one can update or delete submissions
+      allow update, delete: if false;
+    }
+  }
+}

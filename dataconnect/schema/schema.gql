@@ -1,0 +1,39 @@
+type User @table {
+  githubId: String!
+  username: String!
+  role: String! # ADMIN, MENTOR, CONTRIBUTOR
+  createdAt: Timestamp!
+  email: String
+  avatarUrl: String
+}
+
+type Form @table {
+  title: String!
+  description: String!
+  fields: String! # JSONB for dynamic form fields
+  createdAt: Timestamp!
+  createdBy: User!
+  deadline: Timestamp
+}
+
+type Submission @table {
+  user: User!
+  form: Form!
+  formData: String! # JSONB for submitted data
+  submittedAt: Timestamp!
+}
+
+type Project @table {
+  name: String!
+  description: String!
+  githubRepoUrl: String!
+  createdAt: Timestamp!
+  mentor: User
+}
+
+type Assignment @table {
+  assignedAt: Timestamp!
+  mentor: User!
+  contributor: User
+  project: Project
+}

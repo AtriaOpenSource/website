@@ -5,6 +5,7 @@ import { CheckCircle2, Home, ExternalLink, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { SiWhatsapp } from "react-icons/si";
 
 interface SubmissionBlockerProps {
     formTitle: string;
@@ -12,7 +13,7 @@ interface SubmissionBlockerProps {
 
 export function SubmissionBlocker({ formTitle }: SubmissionBlockerProps) {
     return (
-        <Card className="border-4 border-accent shadow-[8px_8px_0_0_rgba(249,115,22,1)] overflow-hidden">
+        <Card className="border-4 border-ink shadow-[8px_8px_0_0_rgba(0,0,0,1)] overflow-hidden">
             <div className="h-2 bg-accent w-full" />
             <CardHeader className="pt-10 pb-6 text-center border-b-2 border-surface/10 mx-6">
                 <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-accent/20">
@@ -45,9 +46,9 @@ export function SubmissionBlocker({ formTitle }: SubmissionBlockerProps) {
                         </Link>
                     </Button>
                     <Button variant="outline" asChild className="w-full">
-                        <Link href="https://github.com/AtriaOpenSource" target="_blank">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Explore Community GitHub
+                        <Link href="https://chat.whatsapp.com/DmWJm7XyQjeAg1psXWUj6K?mode=gi_t" target="_blank">
+                            <SiWhatsapp className="mr-2 h-4 w-4" />
+                            Join WhatsApp
                         </Link>
                     </Button>
                 </div>

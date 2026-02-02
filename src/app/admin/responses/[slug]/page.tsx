@@ -146,7 +146,7 @@ export default function FormResponsesPage() {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div>
                                         <CardTitle className="text-lg font-black">{submission.userName}</CardTitle>
-                                        <CardDescription className="text-sm font-mono truncate max-w-[250px]">{submission.userEmail}</CardDescription>
+                                        <CardDescription className="text-sm font-mono truncate max-w-62.5">{submission.userEmail}</CardDescription>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <p className="text-[10px] text-surface-lighter font-mono bg-surface/5 px-2 py-1 rounded">

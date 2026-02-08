@@ -1,19 +1,20 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { FormField, FieldType, Form } from "@/lib/types/form";
+import { FormField, FieldType } from "@/lib/types/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { PageHeader, PageLoadingState } from "@/components/ui/page-header";
-import { Plus, Trash2, GripVertical, Save, ArrowLeft, Loader2, Eye } from "lucide-react";
+import { PageHeader, PageLoadingState } from "@/components/layout/PageHeader";
+import { Plus, Trash2, GripVertical, Save, Loader2 } from "lucide-react";
 import { QuestionEditor } from "@/components/form-builder/QuestionEditor";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { getForm, createForm, updateForm } from "@/lib/firebase/forms";
 import { auth } from "@/lib/firebase/config";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { dashboardRoutes } from "@/lib/routes/dashboard";
+import { DEFAULT_UPLOAD_FILE_TYPES } from "@/lib/utils/upload-types";
 
 interface QuestionTypeSelectorProps {
     onSelect: (type: FieldType) => void;
@@ -26,16 +27,17 @@ function QuestionTypeSelector({ onSelect }: QuestionTypeSelectorProps) {
         { value: "radio", label: "Multiple Choice" },
         { value: "checkbox", label: "Checkboxes" },
         { value: "select", label: "Dropdown" },
+        { value: "upload", label: "File Upload" },
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {types.map((type) => (
                 <Button
                     key={type.value}
                     variant="outline"
                     onClick={() => onSelect(type.value)}
-                    className="h-auto py-4 flex flex-col gap-2"
+                    className="h-auto py-4 flex flex-col gap-2 border-surface-lighter text-ink hover:border-primary hover:text-primary"
                 >
                     <span className="text-sm font-mono">{type.label}</span>
                 </Button>
@@ -44,13 +46,16 @@ function QuestionTypeSelector({ onSelect }: QuestionTypeSelectorProps) {
     );
 }
 
+import { useAuth } from "@/context/auth";
+import { AccessDenied } from "@/components/dashboard/AccessDenied";
+
 function FormBuilderContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { userData, loading: authLoading } = useAuth();
     const { confirm, Dialog } = useConfirmDialog();
     const editSlug = searchParams.get("edit");
 
-    const [formId, setFormId] = useState<string | null>(null);
     const [formTitle, setFormTitle] = useState("");
     const [formDescription, setFormDescription] = useState("");
     const [formSlug, setFormSlug] = useState("");
@@ -69,7 +74,6 @@ function FormBuilderContent() {
                         setFormDescription(existingForm.description);
                         setFormSlug(existingForm.slug);
                         setFields(existingForm.fields);
-                        setFormId(existingForm.slug);
                     } else {
                         confirm({
                             title: "Error",
@@ -77,7 +81,7 @@ function FormBuilderContent() {
                             variant: "destructive",
                             confirmText: "Back to Dashboard",
                             cancelText: null,
-                            onConfirm: () => router.push("/admin/responses"),
+                            onConfirm: () => router.push(dashboardRoutes.admin.responses),
                         });
                     }
                 } catch (error) {
@@ -105,6 +109,7 @@ function FormBuilderContent() {
             label: "",
             required: false,
             options: type === "radio" || type === "checkbox" || type === "select" ? [""] : undefined,
+            acceptedFileTypes: type === "upload" ? [...DEFAULT_UPLOAD_FILE_TYPES] : undefined,
         };
         setFields([...fields, newField]);
         setShowTypeSelector(false);
@@ -157,7 +162,7 @@ function FormBuilderContent() {
         try {
             // Clean fields to remove undefined values and empty options
             const cleanedFields = fields.map(field => {
-                const cleanField: any = {
+                const cleanField: FormField = {
                     id: field.id,
                     type: field.type,
                     label: field.label || "",
@@ -167,6 +172,9 @@ function FormBuilderContent() {
                 // Only add options if they exist and have non-empty values
                 if (field.options && field.options.filter(opt => opt.trim()).length > 0) {
                     cleanField.options = field.options.filter(opt => opt.trim());
+                }
+                if (field.type === "upload" && field.acceptedFileTypes?.length) {
+                    cleanField.acceptedFileTypes = field.acceptedFileTypes;
                 }
 
                 return cleanField;
@@ -187,7 +195,7 @@ function FormBuilderContent() {
                     variant: "success",
                     confirmText: "View Responses",
                     cancelText: "Continue Editing",
-                    onConfirm: () => router.push("/admin/responses"),
+                    onConfirm: () => router.push(dashboardRoutes.admin.responses),
                 });
             } else {
                 await createForm(formData, auth.currentUser?.email || "admin");
@@ -197,9 +205,9 @@ function FormBuilderContent() {
                     variant: "success",
                     confirmText: "View Responses",
                     cancelText: "Edit Further",
-                    onConfirm: () => router.push("/admin/responses"),
+                    onConfirm: () => router.push(dashboardRoutes.admin.responses),
                 });
-                router.push(`/admin/builder?edit=${formSlug}`);
+                router.push(`${dashboardRoutes.admin.builder}?edit=${formSlug}`);
             }
         } catch (error) {
             console.error("Save error:", error);
@@ -220,27 +228,26 @@ function FormBuilderContent() {
         return <PageLoadingState message="Fetching form configuration..." />;
     }
 
+    if (authLoading) return <PageLoadingState message="Checking permissions..." />;
+    if (!userData || userData.role !== 'admin') return <AccessDenied />;
+
     return (
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="space-y-8">
             <Dialog />
-            
+
             <PageHeader
                 title={editSlug ? "Edit Form" : "Form Builder"}
                 description={editSlug ? `Modifying: ${editSlug}` : "Create a new form with custom fields"}
-                backButton={{
-                    label: "Back to List",
-                    href: "/admin/responses"
-                }}
             />
 
             {/* Form Settings */}
-            <Card className="border-4 border-ink shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <Card className="border-2 border-surface-lighter shadow-[4px_4px_0_0_var(--color-surface-lighter)] bg-surface-light">
                 <CardHeader>
                     <CardTitle className="font-mono uppercase text-sm">Form Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
-                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-surface-lighter">Form Title *</label>
+                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-ink/60">Form Title *</label>
                         <Input
                             placeholder="e.g., Beta Testing Registration"
                             value={formTitle}
@@ -250,7 +257,7 @@ function FormBuilderContent() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-surface-lighter">Description</label>
+                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-ink/60">Description</label>
                         <Textarea
                             placeholder="Brief description of this form..."
                             value={formDescription}
@@ -261,11 +268,11 @@ function FormBuilderContent() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-surface-lighter">
-                            Form Slug * <span className="text-surface-lighter text-[10px] normal-case tracking-normal">(Unique URL path)</span>
+                        <label className="block text-xs font-black mb-2 uppercase tracking-wider text-ink/60">
+                            Form Slug * <span className="text-ink/60 text-[10px] normal-case tracking-normal">(Unique URL path)</span>
                         </label>
                         <div className="flex items-center gap-2">
-                            <span className="text-surface-lighter w-auto text-nowrap text-sm font-mono">osatria.in/forms/</span>
+                            <span className="text-ink/60 w-auto text-nowrap text-sm font-mono">osatria.in/forms/</span>
                             <Input
                                 placeholder="beta-testing"
                                 value={formSlug}
@@ -286,11 +293,11 @@ function FormBuilderContent() {
                 <h2 className="text-2xl font-black text-ink uppercase tracking-tight">Questions</h2>
 
                 {fields.map((field, index) => (
-                    <Card key={field.id} className="border-2 border-surface/20 group hover:border-ink transition-colors">
+                    <Card key={field.id} className="border-2 border-surface-lighter group hover:border-primary transition-colors bg-surface-light">
                         <CardContent className="pt-6">
                             <div className="flex items-start gap-3">
                                 <div className="shrink-0 mt-2">
-                                    <GripVertical className="h-5 w-5 text-surface-lighter cursor-move" />
+                                    <GripVertical className="h-5 w-5 text-ink/40 cursor-move" />
                                 </div>
                                 <div className="flex-1">
                                     <QuestionEditor
@@ -336,7 +343,7 @@ function FormBuilderContent() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 sticky bottom-6 bg-paper/80 backdrop-blur-md py-4 border-t-4 border-ink shadow-lg px-4 -mx-4">
+            <div className="flex gap-4 sticky bottom-6 bg-paper/80 backdrop-blur-md py-4 border-t-4 border-ink px-4 -mx-4">
                 <Button
                     variant="brutalist"
                     size="lg"

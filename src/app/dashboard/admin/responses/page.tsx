@@ -6,19 +6,21 @@ import { getAllSubmissions } from "@/lib/firebase/submissions";
 import { Form, Submission } from "@/lib/types/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PageHeader, PageLoadingState } from "@/components/ui/page-header";
+import { PageHeader, PageLoadingState } from "@/components/layout/PageHeader";
 import { BarChart3, Trash2, Edit3, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/context/auth";
+import { AccessDenied } from "@/components/dashboard/AccessDenied";
+import { dashboardRoutes } from "@/lib/routes/dashboard";
 
 export default function ResponsesPage() {
+    const { userData, loading: authLoading } = useAuth();
     const [forms, setForms] = useState<Form[]>([]);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
     const { confirm, Dialog } = useConfirmDialog();
-    const router = useRouter();
-
     const fetchData = async () => {
         try {
             const [formsData, submissionsData] = await Promise.all([
@@ -35,10 +37,16 @@ export default function ResponsesPage() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (userData?.role === 'admin') {
+            fetchData();
+        }
+    }, [userData]);
+
+    if (authLoading) return <PageLoadingState message="Checking permissions..." />;
+    if (!userData || userData.role !== 'admin') return <AccessDenied />;
 
     const handleDeleteForm = (slug: string, title: string) => {
+        // ... (existing logic)
         const formSubmissions = submissions.filter((s) => s.formSlug === slug);
 
         confirm({
@@ -66,7 +74,7 @@ export default function ResponsesPage() {
                 description="View and manage your forms and submissions"
                 actions={{
                     label: "Create New Form",
-                    href: "/admin/builder",
+                    href: dashboardRoutes.admin.builder,
                     variant: "brutalist"
                 }}
             />
@@ -76,10 +84,10 @@ export default function ResponsesPage() {
                 {forms.length === 0 ? (
                     <Card className="border-2 border-surface/10">
                         <CardContent className="py-12 text-center">
-                            <BarChart3 className="h-12 w-12 text-surface-lighter mx-auto mb-4" />
-                            <p className="text-surface-lighter">No forms created yet</p>
+                            <BarChart3 className="h-12 w-12 text-ink/75 mx-auto mb-4" />
+                            <p className="text-ink/75">No forms created yet</p>
                             <Button variant="outline" asChild className="mt-4">
-                                <Link href="/admin/builder">Create Your First Form</Link>
+                                <Link href={dashboardRoutes.admin.builder}>Create Your First Form</Link>
                             </Button>
                         </CardContent>
                     </Card>
@@ -99,13 +107,13 @@ export default function ResponsesPage() {
                                                 <Link
                                                     href={`/forms/${form.slug}`}
                                                     target="_blank"
-                                                    className="text-surface-lighter hover:text-primary transition-colors"
+                                                    className="text-ink/75 hover:text-primary transition-colors"
                                                 >
                                                     <ExternalLink className="h-4 w-4" />
                                                 </Link>
                                             </div>
                                             <CardDescription className="line-clamp-1">{form.description}</CardDescription>
-                                            <p className="text-[10px] font-mono text-surface-lighter mt-2 bg-surface/10 inline-block px-2 py-0.5 rounded">
+                                            <p className="text-[10px] font-mono text-ink/75 mt-2 bg-surface/10 inline-block px-2 py-0.5 rounded">
                                                 ID: {form.slug}
                                             </p>
                                         </div>
@@ -113,7 +121,7 @@ export default function ResponsesPage() {
                                             <div className="text-3xl font-black text-primary">
                                                 {formSubmissions.length}
                                             </div>
-                                            <p className="text-[10px] text-surface-lighter uppercase font-black tracking-widest">
+                                            <p className="text-[10px] text-ink/75 uppercase font-black tracking-widest">
                                                 Responses
                                             </p>
                                         </div>
@@ -122,14 +130,14 @@ export default function ResponsesPage() {
                                 <CardContent className="pt-6">
                                     <div className="flex flex-col sm:flex-row gap-3">
                                         <Button variant="brutalist" asChild className="flex-1 w-full justify-start sm:justify-center">
-                                            <Link href={`/admin/responses/${form.slug}`}>
+                                            <Link href={`${dashboardRoutes.admin.responses}/${form.slug}`}>
                                                 <BarChart3 className="mr-2 h-4 w-4" />
                                                 View Responses
                                             </Link>
                                         </Button>
                                         <div className="flex gap-3 flex-1">
                                             <Button variant="outline" asChild className="flex-1 w-full justify-start sm:justify-center">
-                                                <Link href={`/admin/builder?edit=${form.slug}`}>
+                                                <Link href={`${dashboardRoutes.admin.builder}?edit=${form.slug}`}>
                                                     <Edit3 className="mr-2 h-4 w-4" />
                                                     Edit Form
                                                 </Link>

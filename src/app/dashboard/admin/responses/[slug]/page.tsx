@@ -1,28 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getForm } from "@/lib/firebase/forms";
 import { getSubmissions, deleteSubmission } from "@/lib/firebase/submissions";
 import { Form, Submission } from "@/lib/types/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PageHeader, PageLoadingState, PageEmptyState } from "@/components/ui/page-header";
-import { Download, ArrowLeft, BarChart3, Trash2, FileSpreadsheet } from "lucide-react";
+import { PageHeader, PageLoadingState, PageEmptyState } from "@/components/layout/PageHeader";
+import { BarChart3, Trash2, FileSpreadsheet } from "lucide-react";
 import { exportToXLSX } from "@/lib/utils/export";
 import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+
+import { useAuth } from "@/context/auth";
+import { AccessDenied } from "@/components/dashboard/AccessDenied";
+import { dashboardRoutes } from "@/lib/routes/dashboard";
 
 export default function FormResponsesPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
+    const { userData, loading: authLoading } = useAuth();
 
     const [form, setForm] = useState<Form | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
     const { confirm, Dialog } = useConfirmDialog();
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [formData, submissionsData] = await Promise.all([
                 getForm(slug),
@@ -35,13 +40,19 @@ export default function FormResponsesPage() {
         } finally {
             setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchData();
     }, [slug]);
 
+    useEffect(() => {
+        if (userData?.role === 'admin') {
+            fetchData();
+        }
+    }, [userData, fetchData]);
+
+    if (authLoading) return <PageLoadingState message="Checking permissions..." />;
+    if (!userData || userData.role !== 'admin') return <AccessDenied />;
+
     const handleExportXLSX = async () => {
+        // ... (existing code)
         if (!form) return;
         if (submissions.length === 0) {
             confirm({
@@ -80,21 +91,21 @@ export default function FormResponsesPage() {
                 <div className="max-w-md mx-auto px-4">
                     <div className="mb-6">
                         <div className="w-20 h-20 bg-surface/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <BarChart3 className="h-10 w-10 text-surface-lighter" />
+                            <BarChart3 className="h-10 w-10 text-ink/75" />
                         </div>
                         <h2 className="text-2xl font-black text-ink mb-2">Form Not Found</h2>
-                        <p className="text-surface-lighter mb-4">
-                            This form doesn't exist or hasn't been created yet.
+                        <p className="text-ink/75 mb-4">
+                            This form does not exist or has not been created yet.
                         </p>
-                        <p className="text-sm text-surface-lighter mb-6">
+                        <p className="text-sm text-ink/75 mb-6">
                             Create a form in the <strong>Form Builder</strong> first, then you can view its responses here.
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <Button variant="brutalist" onClick={() => router.push("/admin/builder")} className="w-full sm:w-auto">
+                        <Button variant="brutalist" onClick={() => router.push(dashboardRoutes.admin.builder)} className="w-full sm:w-auto">
                             Create New Form
                         </Button>
-                        <Button variant="outline" onClick={() => router.push("/admin/responses")} className="w-full sm:w-auto">
+                        <Button variant="outline" onClick={() => router.push(dashboardRoutes.admin.responses)} className="w-full sm:w-auto">
                             View All Forms
                         </Button>
                     </div>
@@ -112,7 +123,7 @@ export default function FormResponsesPage() {
                 description={`${submissions.length} total responses saved`}
                 backButton={{
                     label: "Back to Responses",
-                    href: "/admin/responses"
+                    href: dashboardRoutes.admin.responses,
                 }}
                 actions={{
                     label: "Export to XLSX",
@@ -124,7 +135,7 @@ export default function FormResponsesPage() {
 
             {/* Responses List */}
             {submissions.length === 0 ? (
-                <Card className="border-4 border-dashed border-surface/20 bg-surface/5">
+                <Card className="border-4 border-dashed shadow-none border-surface/20 bg-surface/5">
                     <CardContent>
                         <PageEmptyState
                             icon={BarChart3}
@@ -149,7 +160,7 @@ export default function FormResponsesPage() {
                                         <CardDescription className="text-sm font-mono truncate max-w-62.5">{submission.userEmail}</CardDescription>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <p className="text-[10px] text-surface-lighter font-mono bg-surface/5 px-2 py-1 rounded">
+                                        <p className="text-[10px] text-ink/75 font-mono bg-surface/5 px-2 py-1 rounded">
                                             {submission.submittedAt instanceof Date
                                                 ? submission.submittedAt.toLocaleString()
                                                 : new Date(submission.submittedAt.seconds * 1000).toLocaleString()}
@@ -171,11 +182,20 @@ export default function FormResponsesPage() {
                                         const value = submission.responses[field.id];
                                         return (
                                             <div key={field.id} className="bg-surface/5 p-3 rounded-sm border-l-4 border-primary/40">
-                                                <p className="text-[10px] font-black text-surface-lighter uppercase tracking-widest mb-1">
+                                                <p className="text-[10px] font-black text-ink/75 uppercase tracking-widest mb-1">
                                                     {field.label}
                                                 </p>
                                                 <p className="text-sm font-medium line-clamp-3">
-                                                    {Array.isArray(value) ? value.join(", ") : value || <span className="text-surface-lighter italic">No answer</span>}
+                                                    {Array.isArray(value) ? value.join(", ") : value && typeof value === "object" && "url" in value ? (
+                                                        <a
+                                                            href={value.url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-primary hover:underline break-all"
+                                                        >
+                                                            {value.name || value.url}
+                                                        </a>
+                                                    ) : value || <span className="text-ink/75 italic">No answer</span>}
                                                 </p>
                                             </div>
                                         );

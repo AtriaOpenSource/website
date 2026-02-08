@@ -56,8 +56,14 @@ The central hub for our institution's largest open-source event - a collaboratio
 
 2. **Configure Environment Variables**
    
-   Update `.env.local` with your Firebase configuration and admin emails:
+   Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Update `.env.local` with your Firebase configuration:
    ```env
+   # Firebase Configuration (Production credentials)
    NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
    NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -65,23 +71,64 @@ The central hub for our institution's largest open-source event - a collaboratio
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
    
+   # Firebase Emulator Configuration (Development)
+   NEXT_PUBLIC_USE_FIREBASE_EMULATOR="true"
+   NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST="localhost"
+   NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT="4000"
+   NEXT_PUBLIC_AUTH_EMULATOR_HOST="localhost"
+   NEXT_PUBLIC_AUTH_EMULATOR_PORT="9099"
+   
    NEXT_PUBLIC_ADMIN_EMAILS=admin1@example.com,admin2@example.com
    ```
 
-3. **Deploy Firestore Rules**
+3. **Start Firebase Emulators (Development)**
+   
+   For local development, start the Firebase emulators:
    ```bash
-   firebase deploy --only firestore:rules
+   firebase emulators:start
    ```
+   
+   The emulators will run on:
+   - **Firestore**: http://localhost:4000
+   - **Auth**: http://localhost:9099
+   - **Emulator UI**: http://localhost:8090
 
 4. **Run Development Server**
    ```bash
    npm run dev
    ```
+   
+   The app will automatically connect to Firebase emulators when `NEXT_PUBLIC_USE_FIREBASE_EMULATOR="true"`.
 
 5. **Build for Production**
+   
+   For production builds, ensure `.env.production` has emulators disabled:
+   ```env
+   NEXT_PUBLIC_USE_FIREBASE_EMULATOR="false"
+   ```
+   
+   Then build:
    ```bash
    npm run build
    ```
+
+## Development vs Production
+
+### Development (Local)
+- Uses Firebase Emulators for Auth and Firestore
+- No real data is affected
+- Fast iteration and testing
+- Set `NEXT_PUBLIC_USE_FIREBASE_EMULATOR="true"` in `.env.local`
+
+### Production (Deployed)
+- Uses actual Firebase services
+- Real user data
+- Set `NEXT_PUBLIC_USE_FIREBASE_EMULATOR="false"` in `.env.production`
+- Deploy Firestore rules before going live:
+  ```bash
+  firebase deploy --only firestore:rules
+  ```
+
 
 ## Routes
 

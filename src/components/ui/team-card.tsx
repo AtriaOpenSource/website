@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Github, Linkedin, Twitter, Mail, ExternalLink, Instagram } from "lucide-react";
+import { Github, Linkedin, Twitter, Mail, Instagram } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -24,21 +24,32 @@ interface TeamCardProps {
 }
 
 export function TeamCard({ member }: TeamCardProps) {
+    const fallbackAvatar = `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(member.name)}`;
+
     return (
-        <Card className="group border-2 border-surface-lighter shadow-[4px_4px_0_0_var(--color-surface-lighter)] overflow-hidden hover:translate-y-[-4px] hover:shadow-[6px_6px_0_0_var(--color-primary)] hover:border-primary transition-all duration-300 rounded-none bg-surface-light">
+        <Card className="group border-2 border-surface-lighter shadow-[4px_4px_0_0_var(--color-surface-lighter)] overflow-hidden hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--color-primary)] hover:border-primary transition-all duration-300 rounded-none bg-surface-light">
             <div className="relative h-80 w-full overflow-hidden bg-surface-lighter">
                 {/* Image Handling: Grayscale by default, color on group hover */}
                 {member.image ? (
                     <div className="relative w-full h-full">
-                        <img
+                        <Image
                             src={member.image}
                             alt={member.name}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
                             className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ease-in-out scale-100 group-hover:scale-105"
                         />
                     </div>
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-surface-light grayscale group-hover:grayscale-0 transition-all duration-500">
-                        <span className="text-4xl font-black text-ink/20">{member.name.charAt(0)}</span>
+                    <div className="relative w-full h-full">
+                        <Image
+                            src={fallbackAvatar}
+                            alt={`${member.name} avatar`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            unoptimized
+                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ease-in-out scale-100 group-hover:scale-105"
+                        />
                     </div>
                 )}
             </div>

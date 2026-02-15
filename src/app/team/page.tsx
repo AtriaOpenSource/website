@@ -40,29 +40,17 @@ const CORE_TEAM: TeamMember[] = [
             instagram: "https://www.instagram.com/theanikeeeeet",
             email: "rajaniket6379@gmail.com"
         }
-    }
-];
-
-const ORGANIZING_TEAM: TeamMember[] = [
-    {
-        name: "Community Manager",
-        role: "Community",
-        socials: {
-            email: "community@atria.edu"
-        }
     },
     {
-        name: "Event Lead",
-        role: "Events",
+        name: 'Ashitha G Kanchan',
+        role: 'Design Lead',
+        image: undefined,
+        bio: 'if it looks cute, I did that.',
         socials: {
-            instagram: "https://instagram.com/atria_opensource"
-        }
-    },
-    {
-        name: "Tech Lead",
-        role: "Technical",
-        socials: {
-            github: "https://github.com/atria-os"
+            github: 'https://github.com/Ashitha-g-kanchan',
+            linkedin: 'https://www.linkedin.com/in/ashitha-g-kanchan/',
+            instagram: 'https://www.instagram.com/ashitha.kanchan',
+            email: 'ashithakanchan25@gmail.com'
         }
     }
 ];
@@ -116,7 +104,7 @@ export default function TeamPage() {
             </motion.section>
 
             {/* Organizing Team Section */}
-            <motion.section
+            {/* <motion.section
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.14, duration: 0.4, ease: "easeOut" }}
@@ -141,7 +129,7 @@ export default function TeamPage() {
                         </motion.div>
                     ))}
                 </div>
-            </motion.section>
+            </motion.section> */}
         </motion.div>
     );
 }

@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Open Source Atria",
+  title: "Atria Summer of Code",
   description: "The premier platform for Atria's largest open-source collaboration.",
 };
 

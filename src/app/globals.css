@@ -31,7 +31,8 @@
 
   /* Animations */
   @keyframes gradient-x {
-    0%, 100% {
+    0%,
+    100% {
       background-position: left center;
     }
     50% {
@@ -60,7 +61,8 @@
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -69,18 +71,38 @@
   }
 
   @keyframes grain {
-    0%, 100% { transform: translate(0, 0); }
-    10% { transform: translate(-5%, -10%); }
-    20% { transform: translate(-15%, 5%); }
-    30% { transform: translate(7%, -25%); }
-    40% { transform: translate(-5%, 25%); }
-    50% { transform: translate(-15%, 10%); }
-    60% { transform: translate(15%, 0%); }
-    70% { transform: translate(0%, 15%); }
-    80% { transform: translate(3%, 35%); }
-    90% { transform: translate(-10%, 10%); }
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    10% {
+      transform: translate(-5%, -10%);
+    }
+    20% {
+      transform: translate(-15%, 5%);
+    }
+    30% {
+      transform: translate(7%, -25%);
+    }
+    40% {
+      transform: translate(-5%, 25%);
+    }
+    50% {
+      transform: translate(-15%, 10%);
+    }
+    60% {
+      transform: translate(15%, 0%);
+    }
+    70% {
+      transform: translate(0%, 15%);
+    }
+    80% {
+      transform: translate(3%, 35%);
+    }
+    90% {
+      transform: translate(-10%, 10%);
+    }
   }
-
 
   --animate-gradient-x: gradient-x 3s ease infinite;
   --animate-fade-in: fade-in 0.5s ease-out;
@@ -116,7 +138,10 @@ body {
 }
 
 .pattern-halftone {
-  background-image: radial-gradient(var(--color-surface-lighter) 1px, transparent 1px);
+  background-image: radial-gradient(
+    var(--color-surface-lighter) 1px,
+    transparent 1px
+  );
   background-size: 20px 20px;
 }
 

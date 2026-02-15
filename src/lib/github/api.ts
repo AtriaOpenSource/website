@@ -12,6 +12,23 @@ interface GithubPR {
     labels: { name: string }[];
 }
 
+interface GithubForkRepo {
+    id: number;
+    name: string;
+    full_name: string;
+    html_url: string;
+    owner: {
+        login: string;
+    };
+    parent?: {
+        full_name: string;
+    };
+    source?: {
+        full_name: string;
+    };
+    updated_at?: string;
+}
+
 export const fetchRepoPRs = async (owner: string, repo: string) => {
     try {
         const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all`);
@@ -27,5 +44,18 @@ export const fetchRepoPRs = async (owner: string, repo: string) => {
     } catch (error) {
         console.error("Error fetching GitHub PRs:", error);
         return [];
+    }
+};
+
+export const fetchRepoForkByUser = async (owner: string, repo: string, githubUsername: string): Promise<GithubForkRepo | null> => {
+    try {
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/forks?per_page=100`);
+        if (!response.ok) return null;
+        const data: GithubForkRepo[] = await response.json();
+        const normalizedUser = githubUsername.toLowerCase();
+        return data.find((fork) => fork.owner.login.toLowerCase() === normalizedUser) ?? null;
+    } catch (error) {
+        console.error("Error fetching repo forks:", error);
+        return null;
     }
 };

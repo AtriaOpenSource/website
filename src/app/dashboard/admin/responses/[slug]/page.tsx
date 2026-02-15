@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, PageLoadingState, PageEmptyState } from "@/components/layout/PageHeader";
 import { BarChart3, Trash2, FileSpreadsheet } from "lucide-react";
 import { exportToXLSX } from "@/lib/utils/export";
-import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AlertModal, AlertType } from "@/components/ui/alert-modal";
 
 import { useAuth } from "@/context/auth";
 import { AccessDenied } from "@/components/dashboard/AccessDenied";
@@ -25,7 +25,45 @@ export default function FormResponsesPage() {
     const [form, setForm] = useState<Form | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
-    const { confirm, Dialog } = useConfirmDialog();
+    const [alertState, setAlertState] = useState<{
+        isOpen: boolean;
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        type: "info",
+        title: "",
+        message: "",
+        confirmText: "OK",
+        cancelText: "Cancel",
+    });
+
+    const showAlert = (options: {
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+    }) => {
+        setAlertState({
+            isOpen: true,
+            type: options.type,
+            title: options.title,
+            message: options.message,
+            confirmText: options.confirmText ?? "OK",
+            cancelText: options.cancelText ?? "Cancel",
+            onConfirm: options.onConfirm,
+        });
+    };
+
+    const closeAlert = () => {
+        setAlertState((prev) => ({ ...prev, isOpen: false }));
+    };
 
     const fetchData = useCallback(async () => {
         try {
@@ -55,13 +93,11 @@ export default function FormResponsesPage() {
         // ... (existing code)
         if (!form) return;
         if (submissions.length === 0) {
-            confirm({
+            showAlert({
+                type: "warning",
                 title: "No Data",
-                description: "There are no responses to export yet. Please wait for some submissions!",
-                variant: "warning",
+                message: "There are no responses to export yet. Please wait for some submissions!",
                 confirmText: "Close",
-                cancelText: null,
-                onConfirm: () => { },
             });
             return;
         }
@@ -69,10 +105,10 @@ export default function FormResponsesPage() {
     };
 
     const handleDeleteResponse = (submissionId: string, userName: string) => {
-        confirm({
+        showAlert({
+            type: "confirm",
             title: "Delete Response",
-            description: `Are you sure you want to delete ${userName}'s response? This action cannot be undone.`,
-            variant: "destructive",
+            message: `Are you sure you want to delete ${userName}'s response? This action cannot be undone.`,
             confirmText: "Delete",
             onConfirm: async () => {
                 await deleteSubmission(submissionId);
@@ -116,8 +152,6 @@ export default function FormResponsesPage() {
 
     return (
         <div className="space-y-6">
-            <Dialog />
-
             <PageHeader
                 title={form.title}
                 description={`${submissions.length} total responses saved`}
@@ -157,10 +191,10 @@ export default function FormResponsesPage() {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div>
                                         <CardTitle className="text-lg font-black">{submission.userName}</CardTitle>
-                                        <CardDescription className="text-sm font-mono truncate max-w-62.5">{submission.userEmail}</CardDescription>
+                                        <CardDescription className="text-sm font-(family-name:--font-jetbrains) truncate max-w-62.5">{submission.userEmail}</CardDescription>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <p className="text-[10px] text-ink/75 font-mono bg-surface/5 px-2 py-1 rounded">
+                                        <p className="text-[10px] text-ink/75 font-(family-name:--font-jetbrains) bg-surface/5 px-2 py-1 rounded">
                                             {submission.submittedAt instanceof Date
                                                 ? submission.submittedAt.toLocaleString()
                                                 : new Date(submission.submittedAt.seconds * 1000).toLocaleString()}
@@ -186,16 +220,18 @@ export default function FormResponsesPage() {
                                                     {field.label}
                                                 </p>
                                                 <p className="text-sm font-medium line-clamp-3">
-                                                    {Array.isArray(value) ? value.join(", ") : value && typeof value === "object" && "url" in value ? (
-                                                        <a
-                                                            href={value.url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="text-primary hover:underline break-all"
-                                                        >
-                                                            {value.name || value.url}
-                                                        </a>
-                                                    ) : value || <span className="text-ink/75 italic">No answer</span>}
+                                                    {Array.isArray(value)
+                                                        ? value.join(", ")
+                                                        : value && typeof value === "object" && "url" in value ? (
+                                                            <a
+                                                                href={(value as { url: string; name?: string }).url}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="text-primary hover:underline break-all"
+                                                            >
+                                                                {(value as { url: string; name?: string }).name || (value as { url: string; name?: string }).url}
+                                                            </a>
+                                                        ) : (value as string) || <span className="text-ink/75 italic">No answer</span>}
                                                 </p>
                                             </div>
                                         );
@@ -206,6 +242,17 @@ export default function FormResponsesPage() {
                     ))}
                 </div>
             )}
+
+            <AlertModal
+                isOpen={alertState.isOpen}
+                onClose={closeAlert}
+                onConfirm={alertState.onConfirm}
+                type={alertState.type}
+                title={alertState.title}
+                message={alertState.message}
+                confirmText={alertState.confirmText}
+                cancelText={alertState.cancelText}
+            />
         </div>
     );
 }

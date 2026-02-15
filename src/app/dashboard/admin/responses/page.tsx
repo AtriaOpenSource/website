@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, PageLoadingState } from "@/components/layout/PageHeader";
 import { BarChart3, Trash2, Edit3, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AlertModal, AlertType } from "@/components/ui/alert-modal";
 
 import { useAuth } from "@/context/auth";
 import { AccessDenied } from "@/components/dashboard/AccessDenied";
@@ -20,7 +20,45 @@ export default function ResponsesPage() {
     const [forms, setForms] = useState<Form[]>([]);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [loading, setLoading] = useState(true);
-    const { confirm, Dialog } = useConfirmDialog();
+    const [alertState, setAlertState] = useState<{
+        isOpen: boolean;
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        type: "info",
+        title: "",
+        message: "",
+        confirmText: "OK",
+        cancelText: "Cancel",
+    });
+
+    const showAlert = (options: {
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+    }) => {
+        setAlertState({
+            isOpen: true,
+            type: options.type,
+            title: options.title,
+            message: options.message,
+            confirmText: options.confirmText ?? "OK",
+            cancelText: options.cancelText ?? "Cancel",
+            onConfirm: options.onConfirm,
+        });
+    };
+
+    const closeAlert = () => {
+        setAlertState((prev) => ({ ...prev, isOpen: false }));
+    };
     const fetchData = async () => {
         try {
             const [formsData, submissionsData] = await Promise.all([
@@ -49,10 +87,10 @@ export default function ResponsesPage() {
         // ... (existing logic)
         const formSubmissions = submissions.filter((s) => s.formSlug === slug);
 
-        confirm({
+        showAlert({
+            type: "confirm",
             title: "Delete Form",
-            description: `Are you sure you want to delete "${title}"? This will permanently delete the form and all ${formSubmissions.length} responses. This action cannot be undone.`,
-            variant: "destructive",
+            message: `Are you sure you want to delete "${title}"? This will permanently delete the form and all ${formSubmissions.length} responses. This action cannot be undone.`,
             confirmText: "Delete Form",
             onConfirm: async () => {
                 await deleteForm(slug);
@@ -67,8 +105,6 @@ export default function ResponsesPage() {
 
     return (
         <div className="space-y-8">
-            <Dialog />
-
             <PageHeader
                 title="Form Responses"
                 description="View and manage your forms and submissions"
@@ -113,7 +149,7 @@ export default function ResponsesPage() {
                                                 </Link>
                                             </div>
                                             <CardDescription className="line-clamp-1">{form.description}</CardDescription>
-                                            <p className="text-[10px] font-mono text-ink/75 mt-2 bg-surface/10 inline-block px-2 py-0.5 rounded">
+                                            <p className="text-[10px] font-(family-name:--font-jetbrains) text-ink/75 mt-2 bg-surface/10 inline-block px-2 py-0.5 rounded">
                                                 ID: {form.slug}
                                             </p>
                                         </div>
@@ -158,6 +194,17 @@ export default function ResponsesPage() {
                     })
                 )}
             </div>
+
+            <AlertModal
+                isOpen={alertState.isOpen}
+                onClose={closeAlert}
+                onConfirm={alertState.onConfirm}
+                type={alertState.type}
+                title={alertState.title}
+                message={alertState.message}
+                confirmText={alertState.confirmText}
+                cancelText={alertState.cancelText}
+            />
         </div>
     );
 }

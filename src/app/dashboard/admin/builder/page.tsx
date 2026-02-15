@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { FormField, FieldType } from "@/lib/types/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { QuestionEditor } from "@/components/form-builder/QuestionEditor";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getForm, createForm, updateForm } from "@/lib/firebase/forms";
 import { auth } from "@/lib/firebase/config";
-import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AlertModal, AlertType } from "@/components/ui/alert-modal";
 import { dashboardRoutes } from "@/lib/routes/dashboard";
 import { DEFAULT_UPLOAD_FILE_TYPES } from "@/lib/utils/upload-types";
 
@@ -39,7 +39,7 @@ function QuestionTypeSelector({ onSelect }: QuestionTypeSelectorProps) {
                     onClick={() => onSelect(type.value)}
                     className="h-auto py-4 flex flex-col gap-2 border-surface-lighter text-ink hover:border-primary hover:text-primary"
                 >
-                    <span className="text-sm font-mono">{type.label}</span>
+                    <span className="text-sm font-(family-name:--font-jetbrains)">{type.label}</span>
                 </Button>
             ))}
         </div>
@@ -53,8 +53,60 @@ function FormBuilderContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { userData, loading: authLoading } = useAuth();
-    const { confirm, Dialog } = useConfirmDialog();
     const editSlug = searchParams.get("edit");
+    const confirmRef = useRef(false);
+
+    const [alertState, setAlertState] = useState<{
+        isOpen: boolean;
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+        onCancel?: () => void;
+    }>({
+        isOpen: false,
+        type: "info",
+        title: "",
+        message: "",
+        confirmText: "OK",
+        cancelText: "Cancel",
+    });
+
+    const showAlert = (options: {
+        type: AlertType;
+        title: string;
+        message: string;
+        confirmText?: string;
+        cancelText?: string;
+        onConfirm?: () => void;
+        onCancel?: () => void;
+    }) => {
+        setAlertState({
+            isOpen: true,
+            type: options.type,
+            title: options.title,
+            message: options.message,
+            confirmText: options.confirmText ?? "OK",
+            cancelText: options.cancelText ?? "Cancel",
+            onConfirm: options.onConfirm,
+            onCancel: options.onCancel,
+        });
+    };
+
+    const handleAlertConfirm = () => {
+        confirmRef.current = true;
+        alertState.onConfirm?.();
+    };
+
+    const handleAlertClose = () => {
+        if (!confirmRef.current) {
+            alertState.onCancel?.();
+        }
+        confirmRef.current = false;
+        setAlertState((prev) => ({ ...prev, isOpen: false }));
+    };
 
     const [formTitle, setFormTitle] = useState("");
     const [formDescription, setFormDescription] = useState("");
@@ -75,24 +127,24 @@ function FormBuilderContent() {
                         setFormSlug(existingForm.slug);
                         setFields(existingForm.fields);
                     } else {
-                        confirm({
+                        showAlert({
+                            type: "error",
                             title: "Error",
-                            description: "Form not found for editing",
-                            variant: "destructive",
+                            message: "Form not found for editing",
                             confirmText: "Back to Dashboard",
-                            cancelText: null,
-                            onConfirm: () => router.push(dashboardRoutes.admin.responses),
+                            onConfirm: () => router.push(dashboardRoutes.admin.base),
                         });
                     }
                 } catch (error) {
                     console.error("Error fetching form:", error);
-                    confirm({
+                    showAlert({
+                        type: "confirm",
                         title: "Error",
-                        description: "Failed to load form data. Please try again.",
-                        variant: "destructive",
+                        message: "Failed to load form data. Please try again.",
                         confirmText: "Retry",
                         cancelText: "Home",
                         onConfirm: () => window.location.reload(),
+                        onCancel: () => router.push(dashboardRoutes.admin.base),
                     });
                 } finally {
                     setInitialLoading(false);
@@ -100,7 +152,7 @@ function FormBuilderContent() {
             };
             fetchFormData();
         }
-    }, [editSlug, router, confirm]);
+    }, [editSlug, router]);
 
     const addField = (type: FieldType) => {
         const newField: FormField = {
@@ -125,34 +177,29 @@ function FormBuilderContent() {
 
     const handleSave = async () => {
         if (!formTitle.trim()) {
-            confirm({
+            showAlert({
+                type: "warning",
                 title: "Validation Error",
-                description: "Be sure to enter a creative form title!",
-                variant: "warning",
+                message: "Be sure to enter a creative form title!",
                 confirmText: "Got it",
-                cancelText: null,
-                onConfirm: () => { },
             });
             return;
         }
         if (!formSlug.trim()) {
-            confirm({
+            showAlert({
+                type: "warning",
                 title: "Validation Error",
-                description: "A form slug (URL) is required for identifying your form.",
-                variant: "warning",
+                message: "A form slug (URL) is required for identifying your form.",
                 confirmText: "Got it",
-                cancelText: null,
-                onConfirm: () => { },
             });
             return;
         }
         if (fields.length === 0) {
-            confirm({
+            showAlert({
+                type: "warning",
                 title: "Empty Form",
-                description: "A form without questions is like a car without tires. Add at least one question!",
-                variant: "warning",
+                message: "A form without questions is like a car without tires. Add at least one question!",
                 confirmText: "Add Question",
-                cancelText: null,
                 onConfirm: () => setShowTypeSelector(true),
             });
             return;
@@ -189,20 +236,20 @@ function FormBuilderContent() {
 
             if (editSlug) {
                 await updateForm(editSlug, formData);
-                confirm({
+                showAlert({
+                    type: "confirm",
                     title: "Success",
-                    description: `Form "${formTitle}" updated successfully!`,
-                    variant: "success",
+                    message: `Form "${formTitle}" updated successfully!`,
                     confirmText: "View Responses",
                     cancelText: "Continue Editing",
                     onConfirm: () => router.push(dashboardRoutes.admin.responses),
                 });
             } else {
                 await createForm(formData, auth.currentUser?.email || "admin");
-                confirm({
+                showAlert({
+                    type: "confirm",
                     title: "Published",
-                    description: `Form "${formTitle}" is now live and ready for responses!`,
-                    variant: "success",
+                    message: `Form "${formTitle}" is now live and ready for responses!`,
                     confirmText: "View Responses",
                     cancelText: "Edit Further",
                     onConfirm: () => router.push(dashboardRoutes.admin.responses),
@@ -211,13 +258,11 @@ function FormBuilderContent() {
             }
         } catch (error) {
             console.error("Save error:", error);
-            confirm({
+            showAlert({
+                type: "error",
                 title: "Save Failed",
-                description: "Something went wrong while saving. Please try again.",
-                variant: "destructive",
+                message: "Something went wrong while saving. Please try again.",
                 confirmText: "Retry",
-                cancelText: null,
-                onConfirm: () => { },
             });
         } finally {
             setLoading(false);
@@ -233,8 +278,6 @@ function FormBuilderContent() {
 
     return (
         <div className="space-y-8">
-            <Dialog />
-
             <PageHeader
                 title={editSlug ? "Edit Form" : "Form Builder"}
                 description={editSlug ? `Modifying: ${editSlug}` : "Create a new form with custom fields"}
@@ -243,7 +286,7 @@ function FormBuilderContent() {
             {/* Form Settings */}
             <Card className="border-2 border-surface-lighter shadow-[4px_4px_0_0_var(--color-surface-lighter)] bg-surface-light">
                 <CardHeader>
-                    <CardTitle className="font-mono uppercase text-sm">Form Settings</CardTitle>
+                    <CardTitle className="font-(family-name:--font-jetbrains) uppercase text-sm">Form Settings</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
@@ -272,17 +315,17 @@ function FormBuilderContent() {
                             Form Slug * <span className="text-ink/60 text-[10px] normal-case tracking-normal">(Unique URL path)</span>
                         </label>
                         <div className="flex items-center gap-2">
-                            <span className="text-ink/60 w-auto text-nowrap text-sm font-mono">osatria.in/forms/</span>
+                            <span className="text-ink/60 w-auto text-nowrap text-sm font-(family-name:--font-jetbrains)">osatria.in/forms/</span>
                             <Input
                                 placeholder="beta-testing"
                                 value={formSlug}
                                 disabled={!!editSlug}
                                 onChange={(e) => setFormSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                                className="font-mono border-2 disabled:opacity-50 disabled:bg-surface/5"
+                                className="font-(family-name:--font-jetbrains) border-2 disabled:opacity-50 disabled:bg-surface/5"
                             />
                         </div>
                         {editSlug && (
-                            <p className="text-[10px] text-accent mt-1 font-mono uppercase">Slug cannot be changed after creation</p>
+                            <p className="text-[10px] text-accent mt-1 font-(family-name:--font-jetbrains) uppercase">Slug cannot be changed after creation</p>
                         )}
                     </div>
                 </CardContent>
@@ -334,7 +377,7 @@ function FormBuilderContent() {
                         <CardContent className="pt-6 text-center">
                             <h3 className="text-xs font-black text-ink uppercase tracking-widest mb-4">Select Question Type</h3>
                             <QuestionTypeSelector onSelect={addField} />
-                            <Button variant="ghost" onClick={() => setShowTypeSelector(false)} className="mt-4 text-xs font-mono uppercase">
+                            <Button variant="ghost" onClick={() => setShowTypeSelector(false)} className="mt-4 text-xs font-(family-name:--font-jetbrains) uppercase">
                                 Cancel
                             </Button>
                         </CardContent>
@@ -365,6 +408,17 @@ function FormBuilderContent() {
                     </Link>
                 </Button> */}
             </div>
+
+            <AlertModal
+                isOpen={alertState.isOpen}
+                onClose={handleAlertClose}
+                onConfirm={handleAlertConfirm}
+                type={alertState.type}
+                title={alertState.title}
+                message={alertState.message}
+                confirmText={alertState.confirmText}
+                cancelText={alertState.cancelText}
+            />
         </div>
     );
 }

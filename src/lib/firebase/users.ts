@@ -1,5 +1,5 @@
 import { db } from './config';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 
 export type UserRole = 'admin' | 'maintainer' | 'contributor';
@@ -11,11 +11,13 @@ export interface UserData {
     githubUsername: string | null;
     role: UserRole;
     points: number;
-    createdAt: any;
-    lastLoginAt: any;
+    createdAt: unknown;
+    lastLoginAt: unknown;
 }
 
-export const createUserDocument = async (user: User, additionalData?: any) => {
+type AdditionalUserData = Partial<Pick<UserData, "githubUsername" | "role">> & Record<string, unknown>;
+
+export const createUserDocument = async (user: User, additionalData?: AdditionalUserData) => {
     if (!user) return;
 
     const userRef = doc(db, 'users', user.uid);
@@ -85,5 +87,17 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
     } catch (error) {
         console.error("Error fetching user data", error);
         return null;
+    }
+};
+
+export const getLeaderboardUsers = async (maxUsers = 100): Promise<UserData[]> => {
+    try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, orderBy('points', 'desc'), limit(maxUsers));
+        const userSnap = await getDocs(q);
+        return userSnap.docs.map((snapshot) => snapshot.data() as UserData);
+    } catch (error) {
+        console.error("Error fetching leaderboard users", error);
+        return [];
     }
 };

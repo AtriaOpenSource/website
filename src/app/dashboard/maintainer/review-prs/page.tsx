@@ -57,7 +57,7 @@ export default function MaintainerReviewPRsPage() {
 
     const fetchData = useCallback(async () => {
         if (!user) return;
-        const repoData = await getMaintainerRepositories(user.uid);
+        const repoData = await getMaintainerRepositories(user.uid, userData?.githubUsername);
         setRepos(repoData);
 
         const repoNames = repoData.map((repo) => `${repo.owner}/${repo.name}`);
@@ -68,7 +68,7 @@ export default function MaintainerReviewPRsPage() {
 
         const prData = await getMaintainerPullRequests(repoNames);
         setPrs(prData);
-    }, [user]);
+    }, [user, userData?.githubUsername]);
 
     useEffect(() => {
         const bootstrap = async () => {

@@ -1,5 +1,5 @@
 import { db } from './config';
-import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 
 export type UserRole = 'admin' | 'maintainer' | 'contributor';
@@ -21,42 +21,55 @@ export const createUserDocument = async (user: User, additionalData?: Additional
     if (!user) return;
 
     const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
+    try {
+        const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
-        const { email, photoURL, providerData } = user;
-        // Try to get GitHub username from provider data if available
-        let githubUsername = null;
-        const githubProvider = providerData.find(p => p.providerId === 'github.com');
-        if (githubProvider) {
-            // This is a best effort, sometimes displayName is the username, sometimes not.
-            // Ideally we'd get this from the credential result, but here we just store what we have.
-            githubUsername = additionalData?.githubUsername || null;
-        }
+        if (!userSnap.exists()) {
+            const { email, photoURL, providerData } = user;
+            // Try to get GitHub username from provider data if available
+            let githubUsername = null;
+            const githubProvider = providerData.find(p => p.providerId === 'github.com');
+            if (githubProvider) {
+                // This is a best effort, sometimes displayName is the username, sometimes not.
+                // Ideally we'd get this from the credential result, but here we just store what we have.
+                githubUsername = additionalData?.githubUsername || null;
+            }
 
-        const userData: UserData = {
-            uid: user.uid,
-            email,
-            photoURL,
-            githubUsername,
-            role: additionalData?.role || 'contributor', // Default role
-            points: 0,
-            createdAt: serverTimestamp(),
-            lastLoginAt: serverTimestamp(),
-            ...additionalData,
-        };
+            const userData: UserData = {
+                uid: user.uid,
+                email,
+                photoURL,
+                githubUsername,
+                role: additionalData?.role || 'contributor', // Default role
+                points: 0,
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+                ...additionalData,
+            };
 
-        try {
             await setDoc(userRef, userData);
-        } catch (error) {
-            console.error("Error creating user document", error);
+        } else {
+            // Update last login and merge any provided data (role/githubUsername, etc.)
+            const updatePayload = additionalData
+                ? { ...additionalData, lastLoginAt: serverTimestamp() }
+                : { lastLoginAt: serverTimestamp() };
+            await setDoc(userRef, updatePayload, { merge: true });
         }
-    } else {
-        // Update last login and merge any provided data (role/githubUsername, etc.)
-        const updatePayload = additionalData
-            ? { ...additionalData, lastLoginAt: serverTimestamp() }
-            : { lastLoginAt: serverTimestamp() };
-        await setDoc(userRef, updatePayload, { merge: true });
+    } catch (error) {
+        console.error("Error creating/updating user document", error);
+        // Fallback for restrictive read rules: try a write-only merge so login can continue.
+        try {
+            const { email, photoURL } = user;
+            await setDoc(userRef, {
+                uid: user.uid,
+                email,
+                photoURL,
+                lastLoginAt: serverTimestamp(),
+                ...additionalData,
+            }, { merge: true });
+        } catch (writeError) {
+            console.error("Fallback write for user document failed", writeError);
+        }
     }
 
     return userRef;
@@ -99,5 +112,20 @@ export const getLeaderboardUsers = async (maxUsers = 100): Promise<UserData[]> =
     } catch (error) {
         console.error("Error fetching leaderboard users", error);
         return [];
+    }
+};
+
+export const getUserByGithubUsername = async (githubUsername: string): Promise<UserData | null> => {
+    try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('githubUsername', '==', githubUsername), limit(1));
+        const userSnap = await getDocs(q);
+        if (!userSnap.empty) {
+            return userSnap.docs[0].data() as UserData;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching user by GitHub username", error);
+        return null;
     }
 };

@@ -1,14 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth";
 import { AccessDenied } from "@/components/dashboard/AccessDenied";
 import { PageHeader, PageLoadingState } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { getMaintainerRepositories, Repository } from "@/lib/firebase/repos";
-import { ExternalLink, Github } from "lucide-react";
+import { Github } from "lucide-react";
+import { RepoCard } from "@/components/ui/repo-card";
 
 export default function MaintainerReposPage() {
     const { user, userData, loading: authLoading } = useAuth();
@@ -23,7 +22,7 @@ export default function MaintainerReposPage() {
             }
             setLoading(true);
             try {
-                const data = await getMaintainerRepositories(user.uid);
+                const data = await getMaintainerRepositories(user.uid, userData?.githubUsername);
                 setRepos(data);
             } finally {
                 setLoading(false);
@@ -55,20 +54,7 @@ export default function MaintainerReposPage() {
                     </Card>
                 ) : (
                     repos.map((repo) => (
-                        <Card key={repo.id} className="border-2 border-surface-lighter">
-                            <CardHeader>
-                                <CardTitle>{repo.owner}/{repo.name}</CardTitle>
-                                <CardDescription>{repo.description || "No description provided."}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <Badge variant="outline" className="font-(family-name:--font-jetbrains) text-[10px] uppercase">
-                                    {repo.tier || "standard"}
-                                </Badge>
-                                <Link href={repo.html_url} target="_blank" className="inline-flex items-center text-sm text-primary hover:underline">
-                                    Open GitHub Repo <ExternalLink className="h-4 w-4 ml-1" />
-                                </Link>
-                            </CardContent>
-                        </Card>
+                        <RepoCard key={repo.id} repo={repo} />
                     ))
                 )}
             </div>

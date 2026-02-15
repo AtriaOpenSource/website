@@ -47,7 +47,7 @@ export function MaintainerView() {
 
             setLoading(true);
             try {
-                const repos = await getMaintainerRepositories(user.uid);
+                const repos = await getMaintainerRepositories(user.uid, userData?.githubUsername);
                 setRepoCount(repos.length);
 
                 const repoNames = repos.map((repo) => `${repo.owner}/${repo.name}`);

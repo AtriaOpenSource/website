@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { onAuthStateChanged, User, UserCredential, getAdditionalUserInfo, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
-import { createUserDocument, getUserRole, UserData, getUserData } from "@/lib/firebase/users";
+import { createUserDocument, UserData, getUserData } from "@/lib/firebase/users";
 import { AUTH_COOKIE_MAX_AGE, AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 interface AuthContextType {
@@ -31,21 +31,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const getAdminUsernames = () =>
-        process.env.NEXT_PUBLIC_ADMIN_USERNAMES
+    const adminUsernames = useMemo(
+        () =>
+            process.env.NEXT_PUBLIC_ADMIN_USERNAMES
             ?.split(",")
             .map((u) => u.trim().toLowerCase())
-            .filter(Boolean) || [];
+            .filter(Boolean) || [],
+        []
+    );
 
-    const resolveRoleForUsername = async (githubUsername: string | null) => {
-        if (!githubUsername) return "contributor" as const;
-        const adminUsernames = getAdminUsernames();
-        const normalized = githubUsername.toLowerCase();
-        if (adminUsernames.includes(normalized)) return "admin" as const;
-        const { isWhitelisted } = await import("@/lib/firebase/whitelist");
-        const whitelisted = await isWhitelisted(githubUsername);
-        return whitelisted ? ("maintainer" as const) : ("contributor" as const);
+    const resolveGithubUsername = async (result: UserCredential): Promise<string | null> => {
+        const additionalInfo = getAdditionalUserInfo(result);
+        if (typeof additionalInfo?.username === "string" && additionalInfo.username.length > 0) {
+            return additionalInfo.username;
+        }
+
+        const profile = additionalInfo?.profile as { login?: unknown } | null;
+        if (typeof profile?.login === "string" && profile.login.length > 0) {
+            return profile.login;
+        }
+
+        const providerUser = result.user.providerData.find((provider) => provider.providerId === "github.com");
+        if (providerUser?.uid) {
+            return providerUser.uid;
+        }
+
+        const credential = GithubAuthProvider.credentialFromResult(result);
+        const accessToken = credential?.accessToken;
+        if (!accessToken) return null;
+
+        try {
+            const response = await fetch("https://api.github.com/user", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: "application/vnd.github+json",
+                },
+            });
+            if (!response.ok) return null;
+            const profileData = await response.json() as { login?: unknown };
+            return typeof profileData.login === "string" ? profileData.login : null;
+        } catch (error) {
+            console.error("Error fetching GitHub username from API", error);
+            return null;
+        }
     };
+
+    const resolveRoleForUsername = useCallback(
+        async (githubUsername: string | null) => {
+            if (!githubUsername) return "contributor" as const;
+            const normalized = githubUsername.toLowerCase();
+            if (adminUsernames.includes(normalized)) return "admin" as const;
+            try {
+                const { isWhitelisted } = await import("@/lib/firebase/whitelist");
+                const whitelisted = await isWhitelisted(githubUsername);
+                return whitelisted ? ("maintainer" as const) : ("contributor" as const);
+            } catch (error) {
+                console.error("Error resolving maintainer whitelist status", error);
+                return "contributor" as const;
+            }
+        },
+        [adminUsernames]
+    );
 
     const setAuthCookie = (token?: string) => {
         if (typeof document === "undefined") return;
@@ -60,35 +106,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                setUser(user);
-                const token = await user.getIdToken();
-                setAuthCookie(token);
-                // Fetch or create user document
-                await createUserDocument(user);
-                const data = await getUserData(user.uid);
-                if (data?.githubUsername) {
-                    const resolvedRole = await resolveRoleForUsername(data.githubUsername);
-                    if (data.role !== resolvedRole) {
-                        await createUserDocument(user, { role: resolvedRole, githubUsername: data.githubUsername });
-                        const refreshed = await getUserData(user.uid);
-                        setUserData(refreshed);
+            try {
+                if (user) {
+                    setUser(user);
+                    const token = await user.getIdToken();
+                    setAuthCookie(token);
+                    // Fetch or create user document
+                    await createUserDocument(user);
+                    const data = await getUserData(user.uid);
+                    if (data?.githubUsername) {
+                        const resolvedRole = await resolveRoleForUsername(data.githubUsername);
+                        if (data.role !== resolvedRole) {
+                            await createUserDocument(user, { role: resolvedRole, githubUsername: data.githubUsername });
+                            const refreshed = await getUserData(user.uid);
+                            setUserData(refreshed);
+                        } else {
+                            setUserData(data);
+                        }
                     } else {
                         setUserData(data);
                     }
                 } else {
-                    setUserData(data);
+                    setUser(null);
+                    setUserData(null);
+                    setAuthCookie();
                 }
-            } else {
-                setUser(null);
-                setUserData(null);
-                setAuthCookie();
+            } catch (error) {
+                console.error("Error during auth state bootstrap", error);
+                if (!user) {
+                    setUser(null);
+                    setUserData(null);
+                    setAuthCookie();
+                } else {
+                    setUser(user);
+                    setUserData({
+                        uid: user.uid,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        githubUsername: null,
+                        role: "contributor",
+                        points: 0,
+                        createdAt: null,
+                        lastLoginAt: null,
+                    });
+                }
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [resolveRoleForUsername]);
 
     const loginWithGoogle = async () => {
         try {
@@ -107,19 +175,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             provider.addScope('user:email');
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-
-            // @ts-ignore - Accessing additional provider data
-            const githubUsername = result._tokenResponse?.screenName;
+            const githubUsername = await resolveGithubUsername(result);
 
             if (githubUsername) {
                 // Check if whitelisted as maintainer
-                const { isWhitelisted } = await import('@/lib/firebase/whitelist'); // Dynamic import to avoid circular dep if any
-                const whitelisted = await isWhitelisted(githubUsername);
+                let whitelisted = false;
+                try {
+                    const { isWhitelisted } = await import('@/lib/firebase/whitelist'); // Dynamic import to avoid circular dep if any
+                    whitelisted = await isWhitelisted(githubUsername);
+                } catch (error) {
+                    console.error("Error checking whitelist during GitHub login", error);
+                }
 
                 // Check if admin whitelist
-                const isAdmin = getAdminUsernames().includes(githubUsername.toLowerCase());
+                const isAdmin = adminUsernames.includes(githubUsername.toLowerCase());
 
-                let newRole = 'contributor';
+                let newRole: UserData["role"] = 'contributor';
                 if (isAdmin) {
                     newRole = 'admin';
                 } else if (whitelisted) {
@@ -132,7 +203,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // Always update if role changed significantly
                 if (currentData?.role !== newRole) {
-                    await createUserDocument(user, { githubUsername, role: newRole as any });
+                    await createUserDocument(user, { githubUsername, role: newRole });
                 } else if (!currentData?.githubUsername) {
                     await createUserDocument(user, { githubUsername });
                 }

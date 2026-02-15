@@ -1,11 +1,48 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { ArrowRight, Github, Code2, Cpu, Terminal, Zap } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
+    const [timeLeft, setTimeLeft] = useState<{
+        days: number;
+        hours: number;
+        minutes: number;
+        seconds: number;
+    } | null>(null);
+
+    useEffect(() => {
+        const targetDate = new Date("2026-03-11T00:00:00").getTime();
+
+        const calculateTimeLeft = () => {
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference < 0) {
+                return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+            }
+
+            return {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60),
+            };
+        };
+
+        // Set initial time left
+        setTimeLeft(calculateTimeLeft());
+
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
     return (
         <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-surface text-ink">
             {/* Texture Overlay */}
@@ -35,7 +72,7 @@ export function HeroSection() {
                 <div className="absolute bottom-1/3 left-1/4 w-px h-40 bg-linear-to-b from-transparent via-secondary to-transparent opacity-50" />
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col items-center text-center">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
 
                 {/* Event Badge */}
                 <motion.div
@@ -71,6 +108,43 @@ export function HeroSection() {
                     </div>
                 </div>
 
+                {/* Pre-launch Countdown */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
+                    className="mb-12 flex flex-col items-center gap-4"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="h-px w-8 bg-accent/30" />
+                        <span className="font-(family-name:--font-jetbrains) text-sm font-bold tracking-[0.2em] text-accent uppercase">
+                            Pre-launch in
+                        </span>
+                        <div className="h-px w-8 bg-accent/30" />
+                    </div>
+                    {timeLeft ? (
+                        <div className="flex gap-3 sm:gap-4 font-(family-name:--font-jetbrains)">
+                            {[
+                                { label: "Days", value: timeLeft.days },
+                                { label: "Hours", value: timeLeft.hours },
+                                { label: "Mins", value: timeLeft.minutes },
+                                { label: "Secs", value: timeLeft.seconds },
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center bg-white border-2 border-slate-900 px-3 py-2 sm:px-4 sm:py-3 min-w-17.5 sm:min-w-22.5 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+                                    <span className="text-2xl sm:text-3xl font-black text-slate-900 leading-none">
+                                        {String(item.value).padStart(2, '0')}
+                                    </span>
+                                    <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase mt-1">
+                                        {item.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="h-19 sm:h-24" />
+                    )}
+                </motion.div>
+
                 {/* Subheading / Data Vis */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -78,7 +152,7 @@ export function HeroSection() {
                     transition={{ delay: 0.4, duration: 0.6 }}
                     className="max-w-3xl mx-auto space-y-6"
                 >
-                    <p className="text-xl md:text-2xl text-ink/80 font-(family-name:--font-jetbrains) font-medium leading-relaxed">
+                    <p className="text-base md:text-xl lg:text-2xl text-ink/80 font-(family-name:--font-jetbrains) font-medium leading-relaxed">
                         <span className="text-primary">&gt;</span> Join the movement. Build the future.<br />
                         The premier open-source event for <span className="text-accent underline decoration-2 underline-offset-4">innovators</span> and <span className="text-accent underline decoration-2 underline-offset-4">builders</span>.
                     </p>
@@ -92,9 +166,9 @@ export function HeroSection() {
                     className="flex flex-col sm:flex-row gap-6 mt-12"
                 >
                     <Button variant="brutalist" size="xl" className="group" asChild>
-                        <Link href="/forms/apply">
+                        <Link href="/forms/apply" target="_blank">
                             <Zap className="mr-2 h-5 w-5 fill-current" />
-                            Get Started
+                            Apply
                             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </Button>

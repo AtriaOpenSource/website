@@ -1,11 +1,11 @@
 import { db } from './config';
-import { collection, addDoc, getDocs, doc, deleteDoc, query, where, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, deleteDoc, query, where } from 'firebase/firestore';
 
 export interface WhitelistedMaintainer {
     id?: string;
     githubUsername: string;
     addedBy: string; // Admin UID
-    createdAt: any;
+    createdAt: unknown;
 }
 
 export const addToWhitelist = async (githubUsername: string, adminUid: string) => {

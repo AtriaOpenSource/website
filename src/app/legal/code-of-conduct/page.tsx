@@ -1,5 +1,4 @@
 import { LegalLayout } from "@/components/layout/LegalLayout";
-import Link from "next/link";
 import { Shield, Users, MessageCircle, AlertCircle } from "lucide-react";
 
 export default function CodeOfConduct() {
@@ -52,7 +51,7 @@ export default function CodeOfConduct() {
                 <li>The use of sexualized language or imagery</li>
                 <li>Trolling, insulting/derogatory comments</li>
                 <li>Public or private harassment</li>
-                <li>Publishing others' private information</li>
+                <li>Publishing others&apos; private information</li>
                 <li>Other conduct which could reasonably be considered inappropriate</li>
               </ul>
             </div>

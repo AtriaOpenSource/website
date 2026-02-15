@@ -1,6 +1,5 @@
 import { LegalLayout } from "@/components/layout/LegalLayout";
-import Link from "next/link";
-import { Scale, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function TermsOfParticipation() {
   return (
@@ -16,7 +15,7 @@ export default function TermsOfParticipation() {
           <div className="border-l-4 border-ink pl-6 py-2 bg-ink/5 mb-8">
             <h2 className="text-3xl font-black text-ink uppercase tracking-tighter mb-4">Agreement</h2>
             <p className="font-medium">
-              By participating in the Atria Summer of Code event ("the Event"), you agree to comply with these Terms of Participation. This event is a collaboration between Apex Community and OSCode, designed to foster open-source contributions and community building.
+              By participating in the Atria Summer of Code event (&quot;the Event&quot;), you agree to comply with these Terms of Participation. This event is a collaboration between Apex Community and OSCode, designed to foster open-source contributions and community building.
             </p>
           </div>
         </section>
@@ -131,7 +130,7 @@ export default function TermsOfParticipation() {
           <div>
             <h2 className="text-2xl font-black text-ink uppercase tracking-tighter mb-4">Liability</h2>
             <div className="prose prose-p:text-ink/70">
-              <p>The Event and platform are provided "as is" without warranties of any kind.</p>
+              <p>The Event and platform are provided &quot;as is&quot; without warranties of any kind.</p>
               <p>The organizers shall not be liable for any damages arising from participation.</p>
               <p>We are not responsible for technical failures or connectivity issues.</p>
             </div>

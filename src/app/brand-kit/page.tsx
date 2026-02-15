@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Copy, Download, Type, Palette, Layout, Terminal, Box, Image as ImageIcon } from "lucide-react";
+import { Copy, Download, Type, Palette, Terminal, Box } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";

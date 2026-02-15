@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useAuth } from "@/context/auth";
 import { DashboardSidebar } from "@/components/dashboard/Sidebar";
 import { PageLoadingState } from "@/components/layout/PageHeader";
@@ -18,15 +18,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
 
     // Default to contributor if no role (or waiting for update)
-    const role = userData?.role || 'contributor';
+    const role: "admin" | "maintainer" | "contributor" =
+        userData?.role === "admin" || userData?.role === "maintainer" || userData?.role === "contributor"
+            ? userData.role
+            : "contributor";
+    const sidebarStyle = { "--sidebar-width": isCollapsed ? "80px" : "256px" } as CSSProperties;
 
     return (
         <div 
             className="flex h-screen bg-surface overflow-hidden flex-col md:flex-row"
-            style={{ "--sidebar-width": isCollapsed ? "80px" : "256px" } as any}
+            style={sidebarStyle}
         >
             <DashboardSidebar 
-                role={role as any} 
+                role={role}
                 isCollapsed={isCollapsed} 
                 setIsCollapsed={setIsCollapsed} 
             />

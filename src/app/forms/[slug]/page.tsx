@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Form } from "@/lib/types/form";
 import { getForm } from "@/lib/firebase/forms";
 import { checkDuplicateSubmission } from "@/lib/firebase/submissions";
@@ -12,15 +12,14 @@ import { AuthGate } from "@/components/form-engine/AuthGate";
 import { SubmissionBlocker } from "@/components/form-engine/SubmissionBlocker";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageLoadingState } from "@/components/layout/PageHeader";
-import { PublicHeader, PublicHero, PublicFooter } from "@/components/layout/PublicLayout";
+import { PublicHero } from "@/components/layout/PublicLayout";
 import { motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function FormPage() {
     const params = useParams();
-    const router = useRouter();
     const slug = params.slug as string;
 
     const [form, setForm] = useState<Form | null>(null);
@@ -54,7 +53,7 @@ export default function FormPage() {
                 } else {
                     setForm(formData);
                 }
-            } catch (err) {
+            } catch {
                 setError("Error loading form");
             } finally {
                 setLoading(false);

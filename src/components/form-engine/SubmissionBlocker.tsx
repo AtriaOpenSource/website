@@ -1,10 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Home, ExternalLink, Calendar } from "lucide-react";
+import { CheckCircle2, Home } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import { SiWhatsapp } from "react-icons/si";
 
 interface SubmissionBlockerProps {

@@ -27,22 +27,22 @@ if (isEmulator && typeof window !== 'undefined') {
     const authPort = parseInt(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT || '9099');
 
     try {
-        // @ts-ignore - _settingsFrozen is internal but useful to check
+        // @ts-expect-error - _settingsFrozen is internal in Firebase SDK
         if (!db._settingsFrozen) {
             connectFirestoreEmulator(db, firestoreHost, firestorePort);
             console.log(`🔧 Connected to Firestore Emulator at ${firestoreHost}:${firestorePort}`);
         }
-    } catch (error) {
+    } catch {
         console.log('Firestore emulator already connected');
     }
 
     try {
-        // @ts-ignore - config is internal but useful to check
+        // @ts-expect-error - config.emulator is internal in Firebase Auth SDK
         if (!auth.config.emulator) {
             connectAuthEmulator(auth, `http://${authHost}:${authPort}`, { disableWarnings: true });
             console.log(`🔧 Connected to Auth Emulator at ${authHost}:${authPort}`);
         }
-    } catch (error) {
+    } catch {
         console.log('Auth emulator already connected');
     }
 }

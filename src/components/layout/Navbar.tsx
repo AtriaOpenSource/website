@@ -29,6 +29,7 @@ export function Navbar() {
 
     const getDashboardLink = () => {
         if (!userData) return "/";
+        // console.log(userData);
         return getDashboardBase(userData.role);
     };
 

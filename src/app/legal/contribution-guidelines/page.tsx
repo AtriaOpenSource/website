@@ -1,8 +1,7 @@
 "use client";
 
 import { LegalLayout } from "@/components/layout/LegalLayout";
-import Link from "next/link";
-import { GitBranch, GitPullRequest, Code2, CheckCircle2, AlertOctagon, CheckCircle, AlertTriangle } from "lucide-react";
+import { GitBranch, GitPullRequest, Code2, CheckCircle2, AlertOctagon } from "lucide-react";
 
 export default function ContributionGuidelines() {
   return (
@@ -18,7 +17,7 @@ export default function ContributionGuidelines() {
         <section className="bg-primary/5 p-8 border-l-4 border-primary">
           <h2 className="text-3xl font-black text-ink uppercase tracking-tighter mb-4">Welcome Contributors! 🚀</h2>
           <p className="font-medium text-xl">
-            Thank you for your interest in contributing to Atria Summer of Code! This guide will help you understand our contribution workflow and best practices. Whether you're a first-time contributor or an experienced open source developer, we're excited to have you here.
+            Thank you for your interest in contributing to Atria Summer of Code! This guide will help you understand our contribution workflow and best practices. Whether you&apos;re a first-time contributor or an experienced open source developer, we&apos;re excited to have you here.
           </p>
         </section>
 
@@ -135,7 +134,7 @@ export default function ContributionGuidelines() {
 
             <div className="bg-red-50/50 p-8 border-t-4 border-red-500">
               <h3 className="font-black text-red-900 uppercase text-xl mb-4 flex items-center gap-2">
-                <AlertOctagon className="w-6 h-6" /> Don't Do This
+                <AlertOctagon className="w-6 h-6" /> Don&apos;t Do This
               </h3>
               <ul className="space-y-3 text-red-900/80">
                 <li>❌ Submit massive PRs with multiple features</li>

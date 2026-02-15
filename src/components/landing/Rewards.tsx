@@ -107,7 +107,7 @@ export const Rewards = () => {
                         Performance Ranks
                     </h3>
                     <div className="hidden sm:block font-(family-name:--font-jetbrains) text-[10px] uppercase text-ink/40 font-bold tracking-[0.2em]">
-                        // SECTOR_01_RANKS
+                        {"// SECTOR_01_RANKS"}
                     </div>
                 </div>
                 
@@ -219,4 +219,3 @@ export const Rewards = () => {
         </section>
     );
 };
-

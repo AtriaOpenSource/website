@@ -8,6 +8,7 @@ import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { UserData } from "@/lib/firebase/users";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function LeaderboardPage() {
     const [users, setUsers] = useState<UserData[]>([]);
@@ -116,7 +117,13 @@ export default function LeaderboardPage() {
                             >
                                 <div className="flex items-center gap-4">
                                     <span className="font-(family-name:--font-jetbrains) text-ink/75 w-8">#{startIndex + i + 4}</span>
-                                    <img src={user.photoURL || `https://ui-avatars.com/api/?name=${user.githubUsername || 'User'}&background=random`} alt={user.githubUsername || 'User'} className="w-10 h-10 rounded-full bg-surface-lighter border border-surface-lighter" />
+                                    <Image
+                                        src={user.photoURL || `https://ui-avatars.com/api/?name=${user.githubUsername || 'User'}&background=random`}
+                                        alt={user.githubUsername || 'User'}
+                                        width={40}
+                                        height={40}
+                                        className="w-10 h-10 rounded-full bg-surface-lighter border border-surface-lighter object-cover"
+                                    />
                                     <span className="font-bold text-ink group-hover:text-primary transition-colors">{user.githubUsername || 'Anonymous'}</span>
                                 </div>
                                 <span className="font-(family-name:--font-jetbrains) font-bold text-ink">{user.points || 0} pts</span>
@@ -162,9 +169,11 @@ function PodiumUser({ user, rank, color, bgColor, borderColor, height, isFirst =
         >
 
             <div className="relative mb-4">
-                <img
+                <Image
                     src={user.photoURL || `https://ui-avatars.com/api/?name=${user.githubUsername || 'User'}&background=random`}
                     alt={user.githubUsername || 'User'}
+                    width={isFirst ? 96 : 80}
+                    height={isFirst ? 96 : 80}
                     className={`rounded-full border-4 ${borderColor} ${isFirst ? 'w-24 h-24 shadow-xl' : 'w-20 h-20 shadow-lg'} object-cover bg-surface-lighter`}
                 />
                 <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 bg-surface px-3 py-1 rounded-full text-[10px] font-black uppercase ${color} border-2 ${borderColor} whitespace-nowrap`}>

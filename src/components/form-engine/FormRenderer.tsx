@@ -95,7 +95,7 @@ export function FormRenderer({ form, user }: FormRendererProps) {
                         Excellent! Your registration for <span className="font-bold text-primary">&quot;{form.title}&quot;</span> has been recorded.
                     </p>
                     <p className="text-ink/60 text-sm">
-                        You're all set. Keep an eye on the WhatsApp group for further updates.
+                        You&apos;re all set. Keep an eye on the WhatsApp group for further updates.
                     </p>
                 </div>
 

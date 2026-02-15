@@ -7,41 +7,36 @@ import { ArrowRight, Github, Code2, Cpu, Terminal, Zap } from "lucide-react";
 import Link from "next/link";
 
 export function HeroSection() {
+    const calculateTimeLeft = (targetDate: number) => {
+        const now = new Date().getTime();
+        const difference = targetDate - now;
+
+        if (difference < 0) {
+            return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+        }
+
+        return {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60),
+        };
+    };
+    const targetDate = new Date("2026-03-11T00:00:00").getTime();
     const [timeLeft, setTimeLeft] = useState<{
         days: number;
         hours: number;
         minutes: number;
         seconds: number;
-    } | null>(null);
+    } | null>(() => calculateTimeLeft(targetDate));
 
     useEffect(() => {
-        const targetDate = new Date("2026-03-11T00:00:00").getTime();
-
-        const calculateTimeLeft = () => {
-            const now = new Date().getTime();
-            const difference = targetDate - now;
-
-            if (difference < 0) {
-                return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-            }
-
-            return {
-                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                minutes: Math.floor((difference / 1000 / 60) % 60),
-                seconds: Math.floor((difference / 1000) % 60),
-            };
-        };
-
-        // Set initial time left
-        setTimeLeft(calculateTimeLeft());
-
         const timer = setInterval(() => {
-            setTimeLeft(calculateTimeLeft());
+            setTimeLeft(calculateTimeLeft(targetDate));
         }, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [targetDate]);
 
     return (
         <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-surface text-ink">

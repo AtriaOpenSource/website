@@ -1,5 +1,5 @@
 import { db } from './config';
-import { collection, addDoc, getDocs, doc, updateDoc, query, where, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, where, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface PullRequest {
     id: string; // This can be the GitHub PR ID or a composite key
@@ -18,8 +18,8 @@ export interface PullRequest {
     criteriaScores: {
         [key: string]: number;
     };
-    submittedAt: any;
-    updatedAt: any;
+    submittedAt: unknown;
+    updatedAt: unknown;
 }
 
 export const syncPullRequest = async (prData: Omit<PullRequest, 'id' | 'status' | 'points' | 'feedback' | 'criteriaScores' | 'submittedAt' | 'updatedAt'>) => {

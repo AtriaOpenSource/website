@@ -18,7 +18,7 @@ export default function NotFound() {
                         Page Not Found
                     </h2>
                     <p className="text-ink/60 text-lg leading-relaxed max-w-sm mx-auto">
-                        The page you are looking for doesn't exist or has been moved to another dimension.
+                        The page you are looking for doesn&apos;t exist or has been moved to another dimension.
                     </p>
                 </div>
 

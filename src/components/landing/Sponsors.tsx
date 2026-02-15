@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { GradientText } from "@/components/animations/GradientText";
 import Link from "next/link";
 import { Mail, ShieldCheck } from "lucide-react";
+import Image from "next/image";
 
 interface Sponsor {
     name: string;
@@ -56,9 +57,11 @@ export const Sponsors = () => {
                                     <div className="absolute inset-0 pattern-halftone opacity-5 group-hover:opacity-10 transition-opacity" />
                                     
                                     {sponsor.logo ? (
-                                        <img
+                                        <Image
                                             src={sponsor.logo}
                                             alt={`${sponsor.name} logo`}
+                                            width={256}
+                                            height={96}
                                             className="h-24 w-auto object-contain p-4 grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-95 group-hover:scale-105"
                                         />
                                     ) : (

@@ -13,7 +13,8 @@ export function GradientText({ children, className, animate = true }: GradientTe
     return (
         <motion.span
             className={cn(
-                "bg-linear-to-r from-primary via-accent to-primary bg-size-[200%_auto] bg-clip-text text-transparent animate-gradient inline-block",
+                "bg-linear-to-r from-primary via-accent to-primary bg-size-[200%_auto] bg-clip-text text-transparent inline-block",
+                animate && "animate-gradient",
                 className
             )}
             initial={{ opacity: 0, y: 20 }}

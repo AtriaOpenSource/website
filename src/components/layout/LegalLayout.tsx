@@ -16,7 +16,6 @@ export function LegalLayout({
     children,
     title,
     description,
-    badge = "LEGAL",
     lastUpdated
 }: LegalLayoutProps) {
     return (

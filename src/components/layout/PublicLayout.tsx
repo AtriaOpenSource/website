@@ -1,8 +1,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, Github, Instagram, Linkedin, LucideIcon } from "lucide-react";
+import { ArrowLeft, Instagram, Linkedin, LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { SiWhatsapp } from "react-icons/si";
 
 /**
  * Props for the PublicHeader component

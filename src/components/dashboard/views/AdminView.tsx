@@ -60,7 +60,7 @@ export function AdminView() {
         <div className="space-y-12">
             <PageHeader
                 title="Admin Dashboard"
-                description="Welcome to OSAtria Admin Panel"
+                description="Welcome to ASoC Admin Panel"
                 titleSize="lg"
             />
 
@@ -81,7 +81,7 @@ export function AdminView() {
                     <Card className="h-full border-2 border-surface-lighter shadow-[8px_8px_0_0_var(--color-surface-lighter)] bg-surface-light rounded-none">
                         <CardHeader>
                             <CardTitle className="text-xl font-black uppercase tracking-tight text-ink">Quick Actions</CardTitle>
-                            <CardDescription className="text-ink/60 font-mono">Manage your platform resources</CardDescription>
+                            <CardDescription className="text-ink/60 font-(family-name:--font-jetbrains)">Manage your platform resources</CardDescription>
                         </CardHeader>
                         <CardContent className="grid sm:grid-cols-2 gap-4">
                             <ActionBtn href={dashboardRoutes.admin.repos} label="Manage Repositories" />
@@ -100,7 +100,7 @@ export function AdminView() {
                         </CardHeader>
                         <CardContent>
                             {recentSubmissions.length === 0 ? (
-                                <div className="text-center py-8 text-ink/40 opacity-50 font-mono">No submissions yet</div>
+                                <div className="text-center py-8 text-ink/40 opacity-50 font-(family-name:--font-jetbrains)">No submissions yet</div>
                             ) : (
                                 <div className="space-y-4">
                                     {recentSubmissions.map((submission) => (
@@ -125,7 +125,7 @@ const StatsCard = ({ title, value, label, icon: Icon, accent }: any) => (
         </CardHeader>
         <CardContent>
             <div className={`text-4xl font-black ${accent ? 'text-accent' : 'text-primary'}`}>{value}</div>
-            <p className="text-xs font-bold text-ink/60 mt-1 uppercase font-mono">{label}</p>
+            <p className="text-xs font-bold text-ink/60 mt-1 uppercase font-(family-name:--font-jetbrains)">{label}</p>
         </CardContent>
     </Card>
 );
@@ -145,7 +145,7 @@ const ActivityItem = ({ submission, forms }: { submission: Submission, forms: Fo
                 <p className="font-bold text-sm leading-tight text-ink">
                     New submission to <span className="text-primary">"{forms.find(f => f.slug === submission.formSlug)?.title || submission.formSlug}"</span>
                 </p>
-                <p className="text-xs text-ink/75 font-mono mt-1">
+                <p className="text-xs text-ink/75 font-(family-name:--font-jetbrains) mt-1">
                     {submission.userEmail} • {timeAgo}
                 </p>
             </div>

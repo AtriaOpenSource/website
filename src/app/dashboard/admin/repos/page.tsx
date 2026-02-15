@@ -189,7 +189,7 @@ export default function AdminReposPage() {
                                         <CardTitle className="text-base md:text-lg font-bold truncate">
                                             {repo.owner}/{repo.name}
                                         </CardTitle>
-                                        <span className={`inline-block mt-2 px-2 py-0.5 text-xs font-bold uppercase ${getTierBadgeColor(repo.tier)}`}>
+                                        <span className={`inline-block mt-2 px-2 py-0.5 text-xs font-bold uppercase ${getTierBadgeColor(repo.tier || 'bronze')}`}>
                                             {repo.tier}
                                         </span>
                                     </div>

@@ -53,9 +53,9 @@ export function RepoCard({ repo }: RepoCardProps) {
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex items-center gap-2 overflow-hidden">
                         <Github className="h-5 w-5 shrink-0 text-primary" />
-                        <CardTitle className="text-lg font-bold truncate text-ink group-hover:text-primary transition-colors font-mono">
+                        <CardTitle className="text-lg font-bold truncate text-ink group-hover:text-primary transition-colors font-(family-name:--font-jetbrains)">
                             <Link href={repo.html_url} target="_blank">
-                                {repo.name}
+                                {repo.owner}/{repo.name}
                             </Link>
                         </CardTitle>
                     </div>
@@ -75,13 +75,13 @@ export function RepoCard({ repo }: RepoCardProps) {
             <CardContent className="mt-auto pt-0">
                 <div className="flex flex-wrap gap-2 mb-4">
                     {stats.topics.slice(0, 3).map((topic: string) => (
-                        <span key={topic} className="text-xs bg-primary/10 px-2 py-1 rounded-none text-primary font-mono border border-primary/20">
+                        <span key={topic} className="text-xs bg-primary/10 px-2 py-1 rounded-none text-primary font-(family-name:--font-jetbrains) border border-primary/20">
                             {topic}
                         </span>
                     ))}
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-ink/60 font-mono">
+                <div className="flex items-center gap-4 text-sm text-ink/60 font-(family-name:--font-jetbrains)">
                     {stats.language && (
                         <div className="flex items-center gap-1">
                             <Circle className="h-3 w-3 fill-current text-primary" />

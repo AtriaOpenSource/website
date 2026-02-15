@@ -1,318 +1,213 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/auth";
-import { getMaintainerRepositories, Repository } from "@/lib/firebase/repos";
-import { syncPullRequest, updatePullRequestStatus, PullRequest, getMaintainerPullRequests } from "@/lib/firebase/prs";
-import { fetchRepoPRs } from "@/lib/github/api";
+import { AccessDenied } from "@/components/dashboard/AccessDenied";
 import { PageHeader, PageLoadingState } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Github, AlertCircle, RefreshCw, GitPullRequest } from "lucide-react";
-import Link from "next/link";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { getMaintainerRepositories } from "@/lib/firebase/repos";
+import { getMaintainerPullRequests, PullRequest } from "@/lib/firebase/prs";
+import { dashboardRoutes } from "@/lib/routes/dashboard";
+import { Activity, GitBranch, GitPullRequest, ShieldCheck } from "lucide-react";
 
-// This code was moved from src/app/maintainer/page.tsx
+const toDate = (value: unknown): Date | null => {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === "object" && value !== null && "seconds" in value) {
+        const seconds = (value as { seconds?: number }).seconds;
+        if (typeof seconds === "number") return new Date(seconds * 1000);
+    }
+    return null;
+};
+
+const getActivityLabel = (pr: PullRequest): string => {
+    const submittedAt = toDate(pr.submittedAt);
+    const updatedAt = toDate(pr.updatedAt);
+    if (submittedAt && updatedAt && Math.abs(updatedAt.getTime() - submittedAt.getTime()) > 60_000) {
+        return "Updated";
+    }
+    return "Created";
+};
+
 export function MaintainerView() {
     const { user, userData, loading: authLoading } = useAuth();
-    const [repos, setRepos] = useState<Repository[]>([]);
-    const [prs, setPrs] = useState<PullRequest[]>([]);
     const [loading, setLoading] = useState(true);
-    const [syncing, setSyncing] = useState(false);
-
-    // Grading State
-    const [selectedPR, setSelectedPR] = useState<PullRequest | null>(null);
-    const [scores, setScores] = useState({ quality: 0, docs: 0, practices: 0, complexity: 0 });
-    const [feedback, setFeedback] = useState("");
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [prs, setPrs] = useState<PullRequest[]>([]);
+    const [repoCount, setRepoCount] = useState(0);
 
     useEffect(() => {
-        if (!authLoading && user) {
+        const fetchData = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const repos = await getMaintainerRepositories(user.uid);
+                setRepoCount(repos.length);
+
+                const repoNames = repos.map((repo) => `${repo.owner}/${repo.name}`);
+                if (repoNames.length === 0) {
+                    setPrs([]);
+                    return;
+                }
+                const maintainerPrs = await getMaintainerPullRequests(repoNames);
+                setPrs(maintainerPrs);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (userData?.role === "maintainer") {
             fetchData();
         }
-    }, [user, authLoading]);
+    }, [user, userData]);
 
-    const fetchData = async () => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            // Get assigned repos
-            const maintainerRepos = await getMaintainerRepositories(user.uid);
-            // If checking by username is needed:
-            // const maintainerRepos = await getMaintainerRepositoriesByUsername(userData?.githubUsername);
-            setRepos(maintainerRepos);
+    const stats = useMemo(() => {
+        const merged = prs.filter((pr) => pr.status === "merged").length;
+        const rejected = prs.filter((pr) => pr.status === "rejected").length;
+        const reviewed = prs.filter((pr) => pr.status !== "pending").length;
+        return {
+            total: prs.length,
+            reviewed,
+            merged,
+            rejected,
+        };
+    }, [prs]);
 
-            // Get PRs for these repos form Firestore
-            const repoNames = maintainerRepos.map(r => `${r.owner}/${r.name}`);
-            if (repoNames.length > 0) {
-                const storedPRs = await getMaintainerPullRequests(repoNames);
-                setPrs(storedPRs);
-            }
-        } catch (error) {
-            console.error("Error fetching maintainer data:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const recentActivity = useMemo(() => {
+        return [...prs]
+            .sort((a, b) => {
+                const aDate = toDate(a.updatedAt) ?? toDate(a.submittedAt) ?? new Date(0);
+                const bDate = toDate(b.updatedAt) ?? toDate(b.submittedAt) ?? new Date(0);
+                return bDate.getTime() - aDate.getTime();
+            })
+            .slice(0, 10);
+    }, [prs]);
 
-    const handleSync = async () => {
-        setSyncing(true);
-        try {
-            const syncPromises = repos.map(async (repo) => {
-                const githubPRs = await fetchRepoPRs(repo.owner, repo.name);
-                for (const pr of githubPRs) {
-                    await syncPullRequest({
-                        repoId: repo.id,
-                        repoName: `${repo.owner}/${repo.name}`,
-                        prNumber: pr.number,
-                        title: pr.title,
-                        html_url: pr.html_url,
-                        user: {
-                            login: pr.user.login,
-                            avatar_url: pr.user.avatar_url
-                        }
-                    });
-                }
-            });
-            await Promise.all(syncPromises);
-
-            // Refresh local state
-            const repoNames = repos.map(r => `${r.owner}/${r.name}`);
-            if (repoNames.length > 0) {
-                const storedPRs = await getMaintainerPullRequests(repoNames);
-                setPrs(storedPRs);
-            }
-            alert("Synced PRs from GitHub!");
-        } catch (error) {
-            console.error("Error syncing PRs:", error);
-            alert("Failed to sync PRs.");
-        } finally {
-            setSyncing(false);
-        }
-    };
-
-    const handleGradePR = async () => {
-        if (!selectedPR) return;
-
-        const totalPoints = Object.values(scores).reduce((a, b) => a + b, 0);
-
-        try {
-            await updatePullRequestStatus(selectedPR.id, {
-                points: totalPoints,
-                feedback: feedback,
-                criteriaScores: scores,
-                status: 'merged' // We'll just mark as merged for now when graded.
-            });
-
-            setDialogOpen(false);
-            fetchData(); // Refresh to show updated status
-
-            // Reset form
-            setScores({ quality: 0, docs: 0, practices: 0, complexity: 0 });
-            setFeedback("");
-        } catch (error) {
-            console.error("Error grading PR:", error);
-            alert("Failed to save grade.");
-        }
-    };
-
-    const openGradeDialog = (pr: PullRequest) => {
-        setSelectedPR(pr);
-        setScores(pr.criteriaScores as any || { quality: 0, docs: 0, practices: 0, complexity: 0 });
-        setFeedback(pr.feedback || "");
-        setDialogOpen(true);
-    };
-
-    if (authLoading || loading) {
-        return <PageLoadingState message="Loading maintainer dashboard..." />;
-    }
-
-    if (!userData || userData.role !== 'maintainer') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
-                <AlertCircle className="h-12 w-12 text-destructive" />
-                <h2 className="text-xl font-bold">Access Denied</h2>
-                <p>You do not have maintainer privileges.</p>
-                <Button asChild><Link href="/">Return Home</Link></Button>
-            </div>
-        );
-    }
+    if (authLoading || loading) return <PageLoadingState message="Loading maintainer overview..." />;
+    if (!userData || userData.role !== "maintainer") return <AccessDenied />;
 
     return (
         <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <PageHeader
-                    title="Maintainer Dashboard"
-                    description="Manage your repositories and grade pull requests."
-                />
-                <Button onClick={handleSync} disabled={syncing} variant="outline" className="w-full sm:w-auto">
-                    <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-                    Sync with GitHub
-                </Button>
+            <PageHeader
+                title="Maintainer Overview"
+                description="Monitor review throughput, outcomes, and recent repository activity."
+                // actions={{
+                //     label: "Review PRs",
+                //     href: dashboardRoutes.maintainer.reviewPRs,
+                //     variant: "brutalist",
+                // }}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card className="border-2 border-surface-lighter">
+                    <CardHeader>
+                        <CardTitle className="text-xs uppercase tracking-wider text-ink/60">PRs Reviewed</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-black text-primary">{stats.reviewed}</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-2 border-surface-lighter">
+                    <CardHeader>
+                        <CardTitle className="text-xs uppercase tracking-wider text-ink/60">PRs Merged</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-black text-green-600">{stats.merged}</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-2 border-surface-lighter">
+                    <CardHeader>
+                        <CardTitle className="text-xs uppercase tracking-wider text-ink/60">PRs Rejected</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-black text-red-600">{stats.rejected}</p>
+                    </CardContent>
+                </Card>
+                <Card className="border-2 border-surface-lighter">
+                    <CardHeader>
+                        <CardTitle className="text-xs uppercase tracking-wider text-ink/60">Total PRs</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-4xl font-black text-ink">{stats.total}</p>
+                    </CardContent>
+                </Card>
             </div>
 
-            {/* Repos List */}
-            <Card className="border-2 border-surface-lighter bg-surface-light rounded-none shadow-md">
-                <CardHeader>
-                    <CardTitle className="text-ink uppercase tracking-tight">Assigned Repositories</CardTitle>
+            <div className="grid gap-4 md:grid-cols-2">
+                <Card className="border border-surface-lighter">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 text-ink/70 text-sm">
+                            <GitBranch className="h-4 w-4 text-primary" />
+                            Assigned Repositories
+                        </div>
+                        <p className="text-3xl font-black mt-2">{repoCount}</p>
+                    </CardContent>
+                </Card>
+                <Card className="border border-surface-lighter">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 text-ink/70 text-sm">
+                            <ShieldCheck className="h-4 w-4 text-primary" />
+                            Pending Reviews
+                        </div>
+                        <p className="text-3xl font-black mt-2">{prs.filter((pr) => pr.status === "pending").length}</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="border-2 border-surface-lighter">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-lg font-black uppercase tracking-tight flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" /> Recent Activity
+                    </CardTitle>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={dashboardRoutes.maintainer.reviewPRs}>Open Review Queue</Link>
+                    </Button>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap gap-4">
-                        {repos.map(repo => (
-                            <Link key={repo.id} href={repo.html_url} target="_blank" className="flex items-center gap-2 p-3 bg-surface border border-surface-lighter rounded-none hover:border-primary transition-colors group">
-                                <Github className="h-5 w-5 text-ink group-hover:text-primary" />
-                                <span className="font-mono font-medium text-ink">{repo.owner}/{repo.name}</span>
-                            </Link>
-                        ))}
-                        {repos.length === 0 && <p className="text-ink/60 font-mono">No repositories assigned.</p>}
-                    </div>
+                <CardContent className="space-y-3">
+                    {recentActivity.length === 0 ? (
+                        <div className="text-sm text-ink/70 font-(family-name:--font-jetbrains) border border-dashed border-surface-lighter p-4">
+                            No activity yet. New PRs will appear here once synced.
+                        </div>
+                    ) : (
+                        recentActivity.map((pr) => {
+                            const when = toDate(pr.updatedAt) ?? toDate(pr.submittedAt);
+                            return (
+                                <Link
+                                    key={pr.id}
+                                    href={pr.html_url}
+                                    target="_blank"
+                                    className="block border border-surface-lighter p-3 hover:border-primary transition-colors"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-sm line-clamp-1">{pr.title}</p>
+                                            <p className="text-xs text-ink/60 font-(family-name:--font-jetbrains) mt-1">
+                                                {pr.repoName} #{pr.prNumber} by @{pr.user.login}
+                                            </p>
+                                        </div>
+                                        <Badge variant="outline" className="font-(family-name:--font-jetbrains) text-[10px] uppercase">
+                                            {getActivityLabel(pr)}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-2 text-[11px] text-ink/60">
+                                        <span>{when ? when.toLocaleString() : "Time unavailable"}</span>
+                                        <span className="flex items-center gap-1">
+                                            <GitPullRequest className="h-3 w-3" />
+                                            {pr.status}
+                                        </span>
+                                    </div>
+                                </Link>
+                            );
+                        })
+                    )}
                 </CardContent>
             </Card>
-
-            {/* PRs List */}
-            <h3 className="text-2xl font-black mt-8 text-ink uppercase tracking-tight">Pending Pull Requests</h3>
-            <div className="grid gap-4">
-                {prs.length === 0 && (
-                    <Card className="border-dashed border-2 border-surface-lighter bg-surface/5 rounded-none">
-                        <CardContent className="flex flex-col items-center justify-center py-12 text-ink/75">
-                            <GitPullRequest className="h-10 w-10 mb-4 opacity-50" />
-                            <p className="font-mono">No pull requests found. Try syncing with GitHub.</p>
-                        </CardContent>
-                    </Card>
-                )}
-
-                {prs.map(pr => (
-                    <Card key={pr.id} className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow bg-surface-light rounded-none border-y border-r border-surface-lighter">
-                        <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start justify-between gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className={`font-mono text-[10px] uppercase border-none ${pr.status === 'merged' ? 'bg-primary/20 text-primary' :
-                                        pr.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
-                                            'bg-secondary/20 text-secondary'
-                                        }`}>
-                                        {pr.status}
-                                    </Badge>
-                                    <span className="text-xs text-ink/75 font-mono">{pr.repoName} #{pr.prNumber}</span>
-                                </div>
-                                <h4 className="font-bold text-lg hover:text-primary transition-colors text-ink">
-                                    <Link href={pr.html_url} target="_blank">{pr.title}</Link>
-                                </h4>
-                                <div className="flex items-center gap-2 text-sm text-ink/60 font-mono">
-                                    <img src={pr.user.avatar_url} alt={pr.user.login} className="h-5 w-5 rounded-none" />
-                                    <span>{pr.user.login}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-end gap-2 w-full sm:w-auto">
-                                {pr.points > 0 && (
-                                    <div className="text-2xl font-black text-accent drop-shadow-[0_0_5px_rgba(0,123,167,0.5)]">
-                                        {pr.points} <span className="text-xs font-normal text-ink/75 font-mono">pts</span>
-                                    </div>
-                                )}
-                                <Button onClick={() => openGradeDialog(pr)} size="sm" variant={pr.status === 'merged' ? 'outline' : 'default'} className="rounded-none font-bold uppercase tracking-wider">
-                                    {pr.status === 'merged' ? 'Update Grade' : 'Grade PR'}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Grading Dialog */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>Grade Pull Request</DialogTitle>
-                        <DialogDescription>
-                            Assign points based on the following criteria. Total points will be calculated automatically.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="quality" className="text-right col-span-2">
-                                Code Quality (0-10)
-                            </Label>
-                            <Input
-                                id="quality"
-                                type="number"
-                                min="0" max="10"
-                                value={scores.quality}
-                                onChange={(e) => setScores({ ...scores, quality: parseInt(e.target.value) || 0 })}
-                                className="col-span-2"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="docs" className="text-right col-span-2">
-                                Documentation (0-10)
-                            </Label>
-                            <Input
-                                id="docs"
-                                type="number"
-                                min="0" max="10"
-                                value={scores.docs}
-                                onChange={(e) => setScores({ ...scores, docs: parseInt(e.target.value) || 0 })}
-                                className="col-span-2"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="practices" className="text-right col-span-2">
-                                Best Practices (0-10)
-                            </Label>
-                            <Input
-                                id="practices"
-                                type="number"
-                                min="0" max="10"
-                                value={scores.practices}
-                                onChange={(e) => setScores({ ...scores, practices: parseInt(e.target.value) || 0 })}
-                                className="col-span-2"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="complexity" className="text-right col-span-2">
-                                Innovation (0-10)
-                            </Label>
-                            <Input
-                                id="complexity"
-                                type="number"
-                                min="0" max="10"
-                                value={scores.complexity}
-                                onChange={(e) => setScores({ ...scores, complexity: parseInt(e.target.value) || 0 })}
-                                className="col-span-2"
-                            />
-                        </div>
-
-                        <div className="space-y-2 mt-2">
-                            <Label htmlFor="feedback">Feedback</Label>
-                            <Textarea
-                                id="feedback"
-                                placeholder="Optional feedback for the contributor..."
-                                value={feedback}
-                                onChange={(e) => setFeedback(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="text-right text-lg font-bold">
-                            Total: {Object.values(scores).reduce((a, b) => a + b, 0)} Points
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button type="submit" onClick={handleGradePR}>Save Grade & Merge</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

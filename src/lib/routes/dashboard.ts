@@ -10,9 +10,14 @@ export const dashboardRoutes = {
     },
     maintainer: {
         base: "/dashboard/maintainer",
+        repos: "/dashboard/maintainer/repos",
+        reviewPRs: "/dashboard/maintainer/review-prs",
+        profile: "/dashboard/maintainer/profile",
     },
     contributor: {
         base: "/dashboard/contributor",
+        yourRepos: "/dashboard/contributor/your-repos",
+        profile: "/dashboard/contributor/profile",
     },
 } as const;
 

@@ -12,8 +12,7 @@ interface RepoCardProps {
 }
 
 export function RepoCard({ repo }: RepoCardProps) {
-    const [stats, setStats] = useState({ stars: 0, forks: 0, language: "Unknown", topics: [] });
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({ stars: 0, forks: 0, language: "Unknown", topics: [], issues: 0 });
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -21,17 +20,17 @@ export function RepoCard({ repo }: RepoCardProps) {
                 const res = await fetch(`https://api.github.com/repos/${repo.owner}/${repo.name}`);
                 if (res.ok) {
                     const data = await res.json();
+                    console.log(data)
                     setStats({
                         stars: data.stargazers_count,
                         forks: data.forks_count,
                         language: data.language,
-                        topics: data.topics || []
+                        topics: data.topics || [],
+                        issues: data.open_issues_count
                     });
                 }
             } catch (error) {
                 console.error("Failed to fetch repo stats", error);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -48,7 +47,7 @@ export function RepoCard({ repo }: RepoCardProps) {
     const borderColor = repo.tier ? tierColors[repo.tier] || tierColors.default : tierColors.default;
 
     return (
-        <Card className={`border-2 ${borderColor} bg-surface-light hover:translate-y-[-2px] transition-transform h-full flex flex-col group rounded-none`}>
+        <Card className={`border-2 ${borderColor} bg-surface-light hover:-translate-y-0.5 transition-transform h-full flex flex-col group rounded-none`}>
             <CardHeader className="pb-2">
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex items-center gap-2 overflow-hidden">
@@ -95,6 +94,11 @@ export function RepoCard({ repo }: RepoCardProps) {
                     <div className="flex items-center gap-1">
                         <GitFork className="h-4 w-4" />
                         <span>{stats.forks}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-xs border-surface-lighter text-ink/60">
+                            {stats.issues} Issues
+                        </Badge>
                     </div>
                 </div>
             </CardContent>

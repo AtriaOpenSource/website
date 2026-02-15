@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Form } from "@/lib/types/form";
 import { submitForm } from "@/lib/firebase/submissions";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FieldRenderer } from "./FieldRenderer";
 import { User } from "firebase/auth";
@@ -25,12 +25,15 @@ export function FormRenderer({ form, user }: FormRendererProps) {
     const [progress, setProgress] = useState(0);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
+    type FormValues = Record<string, unknown>;
+
     const {
         register,
         handleSubmit,
         formState: { errors },
         watch,
-    } = useForm();
+        setValue,
+    } = useForm<FormValues>();
 
     // Calculate progress
     const watchedFields = watch();
@@ -45,12 +48,15 @@ export function FormRenderer({ form, user }: FormRendererProps) {
             if (typeof value === "string") {
                 return value.trim() !== "";
             }
+            if (typeof value === "object" && "url" in value!) {
+                return Boolean(value.url);
+            }
             return value !== undefined && value !== null;
         }).length;
         setProgress(Math.round((filledFields / totalFields) * 100));
     }, [watchedFields, form.fields]);
 
-    const onSubmit = async (data: any) => {
+    const onSubmit = async (data: FormValues) => {
         setSubmitting(true);
         setSubmitError(null);
         try {
@@ -76,53 +82,33 @@ export function FormRenderer({ form, user }: FormRendererProps) {
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="w-full"
+                className="w-full text-center py-12"
             >
-                <Card className="border-4 border-primary shadow-[12px_12px_0_0_rgba(79,70,229,1)] overflow-hidden">
-                    <div className="h-4 bg-primary w-full" />
-                    <CardContent className="pt-12 pb-12 text-center px-8">
-                        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-primary/20">
-                            <CheckCircle2 className="h-12 w-12 text-primary" />
-                        </div>
-                        <h2 className="text-4xl font-black text-ink mb-4 tracking-tighter uppercase">Submission Received</h2>
-                        <p className="text-surface-lighter text-lg mb-10 max-w-md mx-auto font-medium">
-                            Excellent! Your registration for <span className="text-primary font-bold">"{form.title}"</span> has been recorded successfully.
-                        </p>
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-primary/20">
+                    <CheckCircle2 className="h-10 w-10 text-primary" />
+                </div>
 
-                        <div className="bg-surface/5 p-6 rounded-md border-2 border-surface/10 mb-10 text-left">
-                            <h3 className="text-xs font-black text-surface-lighter uppercase tracking-widest mb-4">What's Next?</h3>
-                            <ul className="space-y-3">
-                                <li className="flex items-start gap-3 text-sm font-medium">
-                                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                    <span>Join our <a href="https://chat.whatsapp.com/DmWJm7XyQjeAg1psXWUj6K?mode=gi_t" className="text-green-400 hover:text-green-500">WhatsApp group</a> for updates and more.</span>
-                                </li>
-                                {/* <li className="flex items-start gap-3 text-sm font-medium">
-                                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                    <span>We'll review your submission and get back to you soon.</span>
-                                </li>
-                                <li className="flex items-start gap-3 text-sm font-medium">
-                                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                    <span>Keep an eye on your inbox ({user.email}) for updates.</span>
-                                </li>
-                                <li className="flex items-start gap-3 text-sm font-medium">
-                                    <ArrowRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                    <span>Join our community discord for live help and discussions.</span>
-                                </li> */}
-                            </ul>
-                        </div>
+                <h2 className="text-4xl font-black text-ink mb-4 tracking-tighter uppercase">Submission Received</h2>
 
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Button variant="brutalist" className="flex-1" onClick={() => router.push("/")}>
-                                <Home className="mr-2 h-4 w-4" />
-                                Back to Portal
-                            </Button>
-                            <Button variant="outline" className="flex-1" onClick={() => window.open("https://chat.whatsapp.com/DmWJm7XyQjeAg1psXWUj6K?mode=gi_t", "_blank")}>
-                                <SiWhatsapp className="mr-2 h-4 w-4" />
-                                WhatsApp Group
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                <div className="space-y-4 mb-10 max-w-lg mx-auto">
+                    <p className="text-xl font-medium text-ink">
+                        Excellent! Your registration for <span className="font-bold text-primary">&quot;{form.title}&quot;</span> has been recorded.
+                    </p>
+                    <p className="text-ink/60 text-sm">
+                        You&apos;re all set. Keep an eye on the WhatsApp group for further updates.
+                    </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                    <Button variant="brutalist" className="flex-1" onClick={() => router.push("/")}>
+                        <Home className="mr-2 h-4 w-4" />
+                        Back to Portal
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => window.open("https://chat.whatsapp.com/DmWJm7XyQjeAg1psXWUj6K?mode=gi_t", "_blank")}>
+                        <SiWhatsapp className="mr-2 h-4 w-4" />
+                        WhatsApp Group
+                    </Button>
+                </div>
             </motion.div>
         );
     }
@@ -130,17 +116,17 @@ export function FormRenderer({ form, user }: FormRendererProps) {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
             {/* Progress Bar - Floating Style */}
-            <div className="sticky top-16 z-30 bg-paper/90 backdrop-blur-md py-6 px-4 -mx-4 border-b-2 border-surface/10 mb-8">
+            <div className="sticky top-0 z-30 backdrop-blur-md py-6 px-4 -mx-4 border-b-2 border-ink/10 mb-8">
                 <div className="max-w-3xl mx-auto">
-                    <div className="flex items-center justify-between mb-3 text-[10px] font-black tracking-widest uppercase text-surface-lighter">
+                    <div className="flex items-center justify-between mb-3 text-[10px] font-black tracking-widest uppercase text-ink/70">
                         <span>Completion Progress</span>
                         <span className={progress === 100 ? "text-primary transition-colors" : ""}>{progress}%</span>
                     </div>
-                    <div className="h-2.5 bg-surface/10 rounded-full overflow-hidden border border-surface/20">
+                    <div className="h-2.5 bg-ink/5 rounded-full overflow-hidden border border-ink/10">
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progress}%` }}
-                            className="h-full bg-linear-to-r from-primary via-indigo-400 to-accent transition-all duration-300"
+                            className="h-full bg-linear-to-r from-primary via-indigo-500 to-accent transition-all duration-300"
                         />
                     </div>
                 </div>
@@ -176,17 +162,19 @@ export function FormRenderer({ form, user }: FormRendererProps) {
                             register={register}
                             errors={errors}
                             index={index + 1}
+                            setValue={setValue}
+                            watch={watch}
                         />
                     </motion.div>
                 ))}
             </div>
 
             {/* Submit Block */}
-            <Card className="border-4 border-ink shadow-[8px_8px_0_0_rgba(0,0,0,1)] bg-surface/5 overflow-hidden">
+            <Card className="border-t-2 border-ink/10 bg-inherit border-l-0 border-r-0 border-b-0 rounded-none shadow-none overflow-hidden">
                 <CardContent className="p-8 text-center">
-                    <p className="text-sm font-medium text-surface-lighter mb-6">
+                    <p className="text-sm font-medium text-ink/70 mb-6">
                         Please review all your answers before submitting.
-                        By clicking submit, you agree to our <a className="underline decoration-dotted hover:text-surface" target="_blank" href="/legal/terms-of-participation">terms of participation</a>.
+                        By clicking submit, you agree to our <a className="underline decoration-dotted hover:text-ink text-primary" target="_blank" href="/legal/terms-of-participation">terms of participation</a>.
                     </p>
                     <Button
                         type="submit"

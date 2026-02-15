@@ -11,7 +11,7 @@ interface AlertBannerProps {
 export function AlertBanner({ variant = "info" }: AlertBannerProps) {
     const variantStyles = {
         info: "bg-primary text-white border-primary-600",
-        success: "bg-green-500 text-white border-green-600",
+        success: "bg-indigo-600 text-white border-indigo-700",
         warning: "bg-accent text-white border-accent-600",
         error: "bg-red-500 text-white border-red-600",
     };

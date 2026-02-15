@@ -1,7 +1,8 @@
 import { Timestamp } from 'firebase/firestore';
+import { UploadFileTypeKey } from '../utils/upload-types';
 
 // Field Types
-export type FieldType = 'text' | 'paragraph' | 'radio' | 'checkbox' | 'select';
+export type FieldType = 'text' | 'paragraph' | 'radio' | 'checkbox' | 'select' | 'upload';
 
 // Form Field Interface
 export interface FormField {
@@ -9,6 +10,7 @@ export interface FormField {
     type: FieldType;
     label: string;
     options?: string[];
+    acceptedFileTypes?: UploadFileTypeKey[];
     required: boolean;
 }
 
@@ -29,7 +31,7 @@ export interface Submission {
     userId: string;
     userEmail: string;
     userName: string;
-    responses: Record<string, any>;
+    responses: Record<string, unknown>;
     submittedAt: Timestamp | Date;
 }
 

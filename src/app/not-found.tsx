@@ -4,8 +4,8 @@ import { Ghost, Home } from "lucide-react";
 
 export default function NotFound() {
     return (
-        <div className="min-h-screen bg-paper flex flex-col items-center justify-center p-6 text-center">
-            <div className="max-w-md w-full space-y-8">
+        <div className="relative min-h-full flex flex-col items-center justify-center p-6 text-center">
+            <div className="relative z-10 max-w-md w-full space-y-8">
                 <div className="w-24 h-24 bg-ink/5 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-ink/10">
                     <Ghost className="h-12 w-12 text-ink/80" />
                 </div>
@@ -39,7 +39,7 @@ export default function NotFound() {
             </div>
 
             {/* Background Grid */}
-            <div className="fixed inset-0 -z-10 bg-[linear-gradient(to_right,rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-size-[40px_40px]" />
+            <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-size-[40px_40px]" />
         </div>
     );
 }

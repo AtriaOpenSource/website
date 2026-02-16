@@ -14,13 +14,13 @@ const buttonVariants = cva(
                 destructive:
                     "bg-red-500 text-white shadow-sm hover:bg-red-600",
                 outline:
-                    "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-white",
+                    "border-2 border-primary bg-transparent text-primary hover:bg-primary/10",
                 secondary:
                     "bg-accent text-white shadow-sm hover:bg-accent/90 hover:shadow-lg hover:scale-105",
-                ghost: "hover:bg-surface/10 hover:text-primary",
+                ghost: "hover:bg-primary/10 hover:text-primary",
                 link: "text-primary underline-offset-4 hover:underline",
                 brutalist:
-                    "bg-ink text-paper border-4 border-ink shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all",
+                    "bg-primary text-white border-2 border-primary shadow-[4px_4px_0_0_var(--color-secondary)] hover:shadow-[2px_2px_0_0_var(--color-secondary)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all font-bold uppercase tracking-wider hover:bg-primary/90",
             },
             size: {
                 default: "h-10 px-6 py-2",

@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 .claude/
+.agent/
 
 # debug
 npm-debug.log*
@@ -33,6 +34,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env.local
+.env.production
 .env
 
 # vercel
@@ -41,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# firebase emulators
+dataconnect/.dataconnect
+*.log

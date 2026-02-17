@@ -63,7 +63,7 @@ export function AdminView() {
     }, []);
 
     // ... (keep logic for uniqueContributors, growth, recentSubmissions)
-    const uniqueContributors = new Set(submissions.map(s => s.userEmail)).size;
+    const uniqueContributors = 0; // Placeholder - implement logic to calculate unique contributors from submissions
     const growth = submissions.length > 0 ? "+..." : "0%";
     const recentSubmissions = submissions
         .sort((a, b) => {

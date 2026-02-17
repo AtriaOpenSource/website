@@ -301,19 +301,21 @@ export function PublicFooter({
                                 </svg>
                             </a>
                             <a
-                                href="/"
-                                {/* target="_blank" */}
+                                // href="/"
+                                // target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-ink text-paper flex items-center justify-center hover:bg-blue-500 transition-colors border-2 border-ink shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+                                aria-disabled
+                                className="cursor-not-allowed w-10 h-10 bg-ink text-paper flex items-center justify-center hover:bg-blue-500 transition-colors border-2 border-ink shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
                                 aria-label="LinkedIn"
                             >
                                 <Linkedin className="w-5 h-5" />
                             </a>
                             <a
-                                href="/"
-                                {/* target="_blank" */}
+                                // href="/"
+                                // target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-10 h-10 bg-ink text-paper flex items-center justify-center hover:bg-pink-500 transition-colors border-2 border-ink shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
+                                aria-disabled
+                                className="cursor-not-allowed w-10 h-10 bg-ink text-paper flex items-center justify-center hover:bg-pink-500 transition-colors border-2 border-ink shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5"
                                 aria-label="Instagram"
                             >
                                 <Instagram className="w-5 h-5" />

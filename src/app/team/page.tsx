@@ -12,9 +12,9 @@ const CORE_TEAM: TeamMember[] = [
         image: "/team/Darshan.webp",
         bio: "Building things that matter.",
         socials: {
-            github: "https://github.com/Dqrshan",
-            linkedin: "https://linkedin.com/in/darshanb05",
-            instagram: "https://instagram.com/bruh.darshan",
+            github: "Dqrshan",
+            linkedin: "darshanb05",
+            instagram: "bruh.darshan",
             email: "realdarshan@outlook.com"
         }
     },
@@ -22,10 +22,10 @@ const CORE_TEAM: TeamMember[] = [
         name: "Pratham S",
         role: "Program Lead",
         image: "/team/Pratham.webp", 
-        bio: "Leading ideas into reality",
+        bio: "Leading ideas into reality.",
         socials: {
-            github: "https://github.com/Prathu241",
-            linkedin: "https://www.linkedin.com/in/pratham-is-a-dev/",
+            github: "Prathu241",
+            linkedin: "pratham-is-a-dev",
             email: "prathamspr@gmail.com"
         }
     },
@@ -35,22 +35,45 @@ const CORE_TEAM: TeamMember[] = [
         image: "/team/Aniket.webp", 
         bio: "---",
         socials: {
-            github: "https://github.com/theanikeeeeet",
-            linkedin: "https://www.linkedin.com/in/aniket-rajj",
-            instagram: "https://www.instagram.com/theanikeeeeet",
+            github: "theanikeeeeet",
+            linkedin: "aniket-rajj",
+            instagram: "theanikeeeeet",
             email: "rajaniket6379@gmail.com"
+        }
+    },{
+        name: 'Disha S',
+        role: 'Operations Lead',
+        image: '/team/Disha.webp',
+        bio: 'From planning to perfection.',
+        socials: {
+            github: 'dishashiva',
+            linkedin: 'dishas05',
+            instagram: 'disha__1105',
+            email: 'disha.s.gowda05@gmail.com'
         }
     },
     {
         name: 'Ashitha G Kanchan',
         role: 'Design Lead',
-        image: undefined,
-        bio: 'If it looks cute, I did that',
+        image: '/team/Ashitha.webp',
+        bio: 'If it looks cute, I did that.',
         socials: {
-            github: 'https://github.com/Ashitha-g-kanchan',
-            linkedin: 'https://www.linkedin.com/in/ashitha-g-kanchan/',
-            instagram: 'https://www.instagram.com/ashitha.kanchan',
+            github: 'Ashitha-g-kanchan',
+            linkedin: 'ashitha-g-kanchan',
+            instagram: 'ashitha.kanchan',
             email: 'ashithakanchan25@gmail.com'
+        }
+    },
+    {
+        name: 'Aswin A',
+        role: 'Technical Lead',
+        image: '/team/Aswin.webp',
+        bio: 'Production is live; send help.',
+        socials: {
+            github: 'ashbuildsites',
+            linkedin: 'aswin-a-4678b928b',
+            instagram: 'builtbyashwin',
+            email: 'team@ashbuildsites.com'
         }
     }
 ];

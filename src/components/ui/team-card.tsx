@@ -23,6 +23,13 @@ interface TeamCardProps {
     member: TeamMember;
 }
 
+const SOCIAL_URLS: Record<string, (handle: string) => string> = {
+    github: (handle) => `https://github.com/${handle}`,
+    linkedin: (handle) => `https://linkedin.com/in/${handle}`,
+    instagram: (handle) => `https://instagram.com/${handle}`,
+    twitter: (handle) => `https://twitter.com/${handle}`,
+};
+
 export function TeamCard({ member }: TeamCardProps) {
     const fallbackAvatar = `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(member.name)}`;
 
@@ -65,11 +72,11 @@ export function TeamCard({ member }: TeamCardProps) {
                 )}
 
                 <div className="flex justify-center gap-4">
-                    {Object.entries(member.socials).map(([platform, link]) => (
-                        link && (
+                    {Object.entries(member.socials).map(([platform, handle]) => (
+                        handle && (
                             <Link
                                 key={platform}
-                                href={platform === 'email' ? `mailto:${link}` : link}
+                                href={platform === 'email' ? `mailto:${handle}` : SOCIAL_URLS[platform]?.(handle) || handle}
                                 target="_blank"
                                 className="p-2 rounded-full hover:bg-primary/10 transition-colors text-ink/60 hover:text-primary"
                             >

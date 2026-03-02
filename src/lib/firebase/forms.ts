@@ -24,6 +24,7 @@ export async function createForm(
 
     await setDoc(formRef, {
         ...formData,
+        isPaused: formData.isPaused ?? false,
         createdBy,
         createdAt: serverTimestamp(),
     });

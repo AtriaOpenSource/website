@@ -48,7 +48,7 @@ export function FormRenderer({ form, user }: FormRendererProps) {
             if (typeof value === "string") {
                 return value.trim() !== "";
             }
-            if (typeof value === "object" && "url" in value!) {
+            if (value !== null && typeof value === "object" && "url" in value) {
                 return Boolean(value.url);
             }
             return value !== undefined && value !== null;

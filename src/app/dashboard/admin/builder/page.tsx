@@ -112,6 +112,7 @@ function FormBuilderContent() {
     const [formDescription, setFormDescription] = useState("");
     const [formSlug, setFormSlug] = useState("");
     const [fields, setFields] = useState<FormField[]>([]);
+    const [isFormPaused, setIsFormPaused] = useState(false);
     const [showTypeSelector, setShowTypeSelector] = useState(false);
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(!!editSlug);
@@ -126,6 +127,7 @@ function FormBuilderContent() {
                         setFormDescription(existingForm.description);
                         setFormSlug(existingForm.slug);
                         setFields(existingForm.fields);
+                        setIsFormPaused(Boolean(existingForm.isPaused));
                     } else {
                         showAlert({
                             type: "error",
@@ -232,6 +234,7 @@ function FormBuilderContent() {
                 title: formTitle,
                 description: formDescription || "",
                 fields: cleanedFields,
+                isPaused: isFormPaused,
             };
 
             if (editSlug) {
@@ -327,6 +330,25 @@ function FormBuilderContent() {
                         {editSlug && (
                             <p className="text-[10px] text-accent mt-1 font-(family-name:--font-jetbrains) uppercase">Slug cannot be changed after creation</p>
                         )}
+                    </div>
+
+                    <div className="border-2 border-surface-lighter bg-surface/20 p-4">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={isFormPaused}
+                                onChange={(e) => setIsFormPaused(e.target.checked)}
+                                className="mt-1 h-4 w-4 accent-primary"
+                            />
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-wider text-ink">
+                                    Pause Form Responses
+                                </p>
+                                <p className="text-xs text-ink/70 mt-1">
+                                    Paused forms show a closed notice and do not accept new submissions.
+                                </p>
+                            </div>
+                        </label>
                     </div>
                 </CardContent>
             </Card>

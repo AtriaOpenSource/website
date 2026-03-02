@@ -20,6 +20,7 @@ export interface Form {
     title: string;
     description: string;
     fields: FormField[];
+    isPaused?: boolean;
     createdBy: string;
     createdAt: Timestamp | Date;
 }
@@ -41,4 +42,5 @@ export interface FormBuilderState {
     title: string;
     description: string;
     fields: FormField[];
+    isPaused?: boolean;
 }

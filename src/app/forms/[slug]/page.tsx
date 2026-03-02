@@ -10,6 +10,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { FormRenderer } from "@/components/form-engine/FormRenderer";
 import { AuthGate } from "@/components/form-engine/AuthGate";
 import { SubmissionBlocker } from "@/components/form-engine/SubmissionBlocker";
+import { FormClosedNotice } from "@/components/form-engine/FormClosedNotice";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageLoadingState } from "@/components/layout/PageHeader";
 import { PublicHero } from "@/components/layout/PublicLayout";
@@ -121,7 +122,13 @@ export default function FormPage() {
             {/* Main Form Content */}
             <main className="py-12 px-4 grow">
                 <div className="max-w-3xl mx-auto">
-                    {!user ? (
+                    {form.isPaused ? (
+                        <Card>
+                            <CardContent className="p-0">
+                                <FormClosedNotice formTitle={form.title} />
+                            </CardContent>
+                        </Card>
+                    ) : !user ? (
                         <Card>
                             <CardContent className="p-0">
                                 <AuthGate formTitle={form.title} />

@@ -131,7 +131,7 @@ export function DashboardSidebar({ role, isCollapsed, setIsCollapsed }: SidebarP
         admin: [
             { href: dashboardRoutes.admin.base, label: "Overview", icon: LayoutDashboard },
             { href: dashboardRoutes.admin.repos, label: "Repositories", icon: GitBranch },
-            { href: dashboardRoutes.admin.users, label: "Users & Maintainers", icon: Users },
+            { href: dashboardRoutes.admin.users, label: "Maintainers", icon: Users },
             { href: dashboardRoutes.admin.builder, label: "Form Builder", icon: FormInput },
             { href: dashboardRoutes.admin.responses, label: "Responses", icon: BarChart3 },
         ],

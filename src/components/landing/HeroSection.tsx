@@ -161,9 +161,9 @@ export function HeroSection() {
                     className="flex flex-col sm:flex-row gap-6 mt-12"
                 >
                     <Button variant="brutalist" size="xl" className="group" asChild>
-                        <Link href="/forms/apply" target="_blank">
+                        <Link href="https://unstop.com/o/PueJHIZ" target="_blank">
                             <Zap className="mr-2 h-5 w-5 fill-current" />
-                            Apply
+                            Register
                             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </Button>

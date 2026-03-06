@@ -162,7 +162,7 @@ export function FieldRenderer({ field, register, errors, index, setValue, watch 
                 {field.type === "select" && (
                     <select
                         {...register(field.id, { required: field.required })}
-                        className="w-full h-12 px-4 border-2 border-surface-lighter rounded-md bg-surface-light text-ink focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full h-12 px-4 border-2 border-surface-lighter rounded-md bg-surface-light text-ink focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer hover:border-primary"
                     >
                         <option value="">Choose an option</option>
                         {field.options?.map((option, i) => (
@@ -222,7 +222,7 @@ export function FieldRenderer({ field, register, errors, index, setValue, watch 
                                         fileInputRef.current?.click();
                                     }
                                 }}
-                                className={`border-2 border-dashed rounded-md p-6 text-center transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-surface-lighter bg-surface-light"}`}
+                                className={`border-2 border-dashed rounded-md p-6 text-center transition-colors cursor-pointer ${isDragging ? "border-primary bg-primary/5" : "border-surface-lighter bg-surface-light hover:border-primary hover:bg-primary/5"}`}
                             >
                                 <Upload className="mx-auto h-6 w-6 text-ink/75 mb-2" />
                                 <p className="text-sm font-medium text-ink">

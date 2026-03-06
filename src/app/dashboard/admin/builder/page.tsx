@@ -113,6 +113,8 @@ function FormBuilderContent() {
     const [formSlug, setFormSlug] = useState("");
     const [fields, setFields] = useState<FormField[]>([]);
     const [isFormPaused, setIsFormPaused] = useState(false);
+    const [whitelistedEmails, setWhitelistedEmails] = useState<string[]>([]);
+    const [emailInput, setEmailInput] = useState("");
     const [showTypeSelector, setShowTypeSelector] = useState(false);
     const [loading, setLoading] = useState(false);
     const [initialLoading, setInitialLoading] = useState(!!editSlug);
@@ -128,6 +130,7 @@ function FormBuilderContent() {
                         setFormSlug(existingForm.slug);
                         setFields(existingForm.fields);
                         setIsFormPaused(Boolean(existingForm.isPaused));
+                        setWhitelistedEmails(existingForm.whitelistedEmails || []);
                     } else {
                         showAlert({
                             type: "error",
@@ -235,6 +238,7 @@ function FormBuilderContent() {
                 description: formDescription || "",
                 fields: cleanedFields,
                 isPaused: isFormPaused,
+                whitelistedEmails: whitelistedEmails.length > 0 ? whitelistedEmails : undefined,
             };
 
             if (editSlug) {
@@ -349,6 +353,65 @@ function FormBuilderContent() {
                                 </p>
                             </div>
                         </label>
+                    </div>
+
+                    <div className="border-2 border-surface-lighter bg-surface/20 p-4 space-y-3">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-wider text-ink mb-1">
+                                Email Whitelist (Optional)
+                            </p>
+                            <p className="text-xs text-ink/70">
+                                Only whitelisted emails can submit. Leave empty for public access.
+                            </p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Enter emails separated by spaces or commas"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                className="text-sm"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    const emails = emailInput.split(/[,\s]+/).filter(e => e.trim() && e.includes('@'));
+                                    setWhitelistedEmails([...new Set([...whitelistedEmails, ...emails])]);
+                                    setEmailInput("");
+                                }}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        {whitelistedEmails.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="text-xs font-bold text-ink">{whitelistedEmails.length} email(s) whitelisted</p>
+                                <div className="max-h-32 overflow-y-auto space-y-1">
+                                    {whitelistedEmails.map((email, i) => (
+                                        <div key={i} className="flex items-center justify-between text-xs bg-surface/30 px-2 py-1 rounded">
+                                            <span className="font-(family-name:--font-jetbrains)">{email}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setWhitelistedEmails(whitelistedEmails.filter((_, idx) => idx !== i))}
+                                                className="text-red-500 hover:text-red-700 ml-2"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setWhitelistedEmails([])}
+                                    className="text-xs"
+                                >
+                                    Clear All
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>

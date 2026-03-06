@@ -11,6 +11,7 @@ import { FormRenderer } from "@/components/form-engine/FormRenderer";
 import { AuthGate } from "@/components/form-engine/AuthGate";
 import { SubmissionBlocker } from "@/components/form-engine/SubmissionBlocker";
 import { FormClosedNotice } from "@/components/form-engine/FormClosedNotice";
+import { EmailNotWhitelisted } from "@/components/form-engine/EmailNotWhitelisted";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageLoadingState } from "@/components/layout/PageHeader";
 import { PublicHero } from "@/components/layout/PublicLayout";
@@ -26,6 +27,7 @@ export default function FormPage() {
     const [form, setForm] = useState<Form | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [isEmailWhitelisted, setIsEmailWhitelisted] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +55,12 @@ export default function FormPage() {
                     setError("Form not found");
                 } else {
                     setForm(formData);
+                    // Check email whitelist
+                    if (user && formData.whitelistedEmails?.length) {
+                        setIsEmailWhitelisted(formData.whitelistedEmails.includes(user.email || ""));
+                    } else {
+                        setIsEmailWhitelisted(true);
+                    }
                 }
             } catch {
                 setError("Error loading form");
@@ -62,7 +70,7 @@ export default function FormPage() {
         };
 
         fetchForm();
-    }, [slug]);
+    }, [slug, user]);
 
     if (loading) {
         return <PageLoadingState message="Loading form environment..." />;
@@ -138,6 +146,12 @@ export default function FormPage() {
                         <Card>
                             <CardContent className="p-0">
                                 <SubmissionBlocker formTitle={form.title} />
+                            </CardContent>
+                        </Card>
+                    ) : !isEmailWhitelisted ? (
+                        <Card>
+                            <CardContent className="p-0">
+                                <EmailNotWhitelisted userEmail={user.email || ""} />
                             </CardContent>
                         </Card>
                     ) : (

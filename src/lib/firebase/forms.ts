@@ -22,12 +22,19 @@ export async function createForm(
 ): Promise<void> {
     const formRef = doc(db, FORMS_COLLECTION, formData.slug);
 
-    await setDoc(formRef, {
+    const dataToSave: Record<string, unknown> = {
         ...formData,
         isPaused: formData.isPaused ?? false,
         createdBy,
         createdAt: serverTimestamp(),
-    });
+    };
+
+    // Only include whitelistedEmails if it exists and has items
+    if (formData.whitelistedEmails && formData.whitelistedEmails.length > 0) {
+        dataToSave.whitelistedEmails = formData.whitelistedEmails;
+    }
+
+    await setDoc(formRef, dataToSave);
 }
 
 /**

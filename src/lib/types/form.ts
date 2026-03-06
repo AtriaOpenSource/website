@@ -21,6 +21,7 @@ export interface Form {
     description: string;
     fields: FormField[];
     isPaused?: boolean;
+    whitelistedEmails?: string[];
     createdBy: string;
     createdAt: Timestamp | Date;
 }
@@ -43,4 +44,5 @@ export interface FormBuilderState {
     description: string;
     fields: FormField[];
     isPaused?: boolean;
+    whitelistedEmails?: string[];
 }

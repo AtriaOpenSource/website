@@ -86,7 +86,9 @@ service cloud.firestore {
     // --- Legacy Forms/Submissions (Keep existing logic) ---
     match /forms/{formSlug} {
       allow read: if true;
-      allow create, update, delete: if isAdmin(); // Updated to use isAdmin helper (which now checks DB)
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
     
     match /submissions/{submissionId} {

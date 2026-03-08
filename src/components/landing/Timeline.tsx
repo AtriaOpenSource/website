@@ -6,7 +6,7 @@ import { GradientText } from "@/components/animations/GradientText";
 export const Timeline = () => {
     const events = [
         {
-            date: "March 11, 2026",
+            date: "March 23, 2026",
             title: "Pre-Launch", 
             description: "Join us for the opening ceremony and register for the program!",
             location: "Atria Institute of Technology & Online",
@@ -16,7 +16,7 @@ export const Timeline = () => {
             shadowColor: "shadow-primary",
         },
         {
-            date: "March 18, 2026",
+            date: "TBD",
             title: "Repositories Reveal",
             description: "Discover the exciting projects and repositories available for contribution.",
             location: "Atria Institute of Technology & Online",
@@ -26,7 +26,7 @@ export const Timeline = () => {
             shadowColor: "shadow-accent",
         },
         {
-            date: "March 23 - May 8, 2026",
+            date: "TBD",
             title: "Contribution Period",
             description: "Start contributing, collaborate with others, submit PRs, earn points, attend workshops, and engage with mentors to maximize your impact.",
             location: "Online",
@@ -36,7 +36,7 @@ export const Timeline = () => {
             shadowColor: "shadow-secondary",
         },
         {
-            date: "May 13, 2026",
+            date: "TBD",
             title: "Closing Ceremony & Awards",
             description: "Celebrate your achievements and receive recognition for your contributions.",
             location: "Atria Institute of Technology & Online",

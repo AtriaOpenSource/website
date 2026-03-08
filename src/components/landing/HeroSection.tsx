@@ -22,7 +22,7 @@ export function HeroSection() {
             seconds: Math.floor((difference / 1000) % 60),
         };
     };
-    const targetDate = new Date("2026-03-11T00:00:00").getTime();
+    const targetDate = new Date("2026-03-23T00:00:00").getTime();
     const [timeLeft, setTimeLeft] = useState<{
         days: number;
         hours: number;

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { ArrowRight, Github, Code2, Cpu, Terminal, Zap } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export function HeroSection() {
     const calculateTimeLeft = (targetDate: number) => {
@@ -67,10 +68,10 @@ export function HeroSection() {
                 <div className="absolute bottom-1/3 left-1/4 w-px h-40 bg-linear-to-b from-transparent via-secondary to-transparent opacity-50" />
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 flex flex-col items-center text-center">
 
                 {/* Event Badge */}
-                <motion.div
+                {/* <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
@@ -79,6 +80,28 @@ export function HeroSection() {
                     <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/50 backdrop-blur-sm px-4 py-1.5 rounded-none">
                         <Terminal className="h-4 w-4 text-primary" />
                         <span className="font-(family-name:--font-jetbrains) text-sm font-bold tracking-widest text-primary uppercase">MAR - MAY 2026</span>
+                    </div>
+                </motion.div> */}
+
+                {/* Organizers */}
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="mb-8 space-y-4"
+                >
+                    {/* AWS Cloud Club */}
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-32 h-32 flex items-center justify-center">
+                            <Image
+                                src="/AWSCC.png"
+                                alt="AWS Cloud Club Atria"
+                                width={100}
+                                height={100}
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+                        <span className="font-(family-name:--font-jetbrains) text-xs font-bold text-ink/60 uppercase tracking-wider">presents</span>
                     </div>
                 </motion.div>
 
@@ -102,6 +125,30 @@ export function HeroSection() {
                         <span className="font-(family-name:--font-jetbrains) text-slate-800/30 text-5xl sm:text-4xl md:text-6xl lg:text-6xl xl:text-8xl tracking-tight block -mt-2 sm:-mt-4 md:-mt-6 lg:-mt-8 xl:-mt-12 normal-case relative z-0 bottom-12 sm:bottom-20">of &lt;CODE&gt;</span>
                     </div>
                 </div>
+
+                {/* Collaboration */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35, duration: 0.6 }}
+                    className="mb-12"
+                >
+                    <div className="flex flex-col items-center gap-3">
+                        <span className="font-(family-name:--font-jetbrains) text-xs font-bold text-ink/60 uppercase tracking-wider">in collaboration with</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-14 h-14 flex items-center justify-center">
+                                <Image
+                                    src="/OSCode.png"
+                                    alt="OSCode Atria Chapter"
+                                    width={56}
+                                    height={56}
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <span className="font-(family-name:--font-jetbrains) text-sm font-bold text-ink uppercase tracking-wide">OSCode Atria Chapter</span>
+                        </div>
+                    </div>
+                </motion.div>
 
                 {/* Pre-launch Countdown */}
                 <motion.div

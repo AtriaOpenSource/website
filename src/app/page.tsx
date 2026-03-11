@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <>
       {/* <AlertBanner variant="info" /> */}
-      <main className="relative pt-14 sm:pt-0 pb-20">
+      <main className="relative pt-10 sm:pt-0 pb-20">
         {/* <CollaborationBadge /> */}
         <HeroSection />
         <Timeline />

@@ -86,7 +86,7 @@ const CORE_TEAM: TeamMember[] = [
       linkedin: "harshini-d-789764357",
       email: "harshinidganu17@gmail.com",
     },
-  }
+  },
 ];
 
 const ORGANIZING_TEAM = [
@@ -125,17 +125,26 @@ const ORGANIZING_TEAM = [
       email: "abhijeetkrishna304@gmail.com",
     },
   },
+  // {
+  //   name: "Anjalee",
+  //   role: "Documentation Coordinator",
+  //   image: "/team/organizing/Anjalee.webp",
+  //   bio: "Exploring tech and documenting ideas.",
+  //   socials: {
+  //     email: "anjaleemalhotra305@gmail.com",
+  //   },
+  // },
+  // Arghaneel
   {
-    name: "Anjalee",
-    role: "Documentation Coordinator",
-    image: "/team/organizing/Anjalee.webp",
-    bio: "Exploring tech and documenting ideas.",
+    name: "Chinmayee Sonar",
+    role: "Event Operations Coordinator",
+    image: "/team/organizing/Chinmayee.webp",
+    bio: "Trust the process.",
     socials: {
-      email: "anjaleemalhotra305@gmail.com",
+      instagram: "x.chinmayee_7",
+      email: "chinmayeesonar1@gmail.com",
     },
   },
-  // Arghaneel
-  // Chinmayee
   {
     name: "Paul Ebinezer S",
     role: "Event Operations Coordinator",

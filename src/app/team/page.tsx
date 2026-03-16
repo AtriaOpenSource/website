@@ -134,7 +134,18 @@ const ORGANIZING_TEAM = [
   //     email: "anjaleemalhotra305@gmail.com",
   //   },
   // },
-  // Arghaneel
+  {
+    name: "ARGHANEEL DAS",
+    role: "Documentation Coordinator",
+    image: "/team/organizing/Arghaneel.webp",
+    bio: "Coding ideas into reality",
+    socials: {
+      github: "Arghaneel",
+      linkedin: "arghaneel-das-690b4b355",
+      instagram: "arghaneel_das_29",
+      email: "arghaneel_das_29",
+    },
+  },
   {
     name: "Chinmayee Sonar",
     role: "Event Operations Coordinator",

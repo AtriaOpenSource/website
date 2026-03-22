@@ -6,7 +6,7 @@ import { GradientText } from "@/components/animations/GradientText";
 export const Timeline = () => {
     const events = [
         {
-            date: "March 23, 2026",
+            date: "April 4, 2026",
             title: "Pre-Launch", 
             description: "Join us for the opening ceremony and register for the program!",
             location: "Atria Institute of Technology & Online",

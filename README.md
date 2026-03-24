@@ -1,6 +1,6 @@
 # Atria Summer of Code Platform
 
-The central hub for our institution's largest open-source event - a collaboration between **Apex Community** and **OSCode**.
+The central hub for our institution's largest open-source event.
 
 ## Features
 

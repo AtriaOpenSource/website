@@ -167,7 +167,3 @@ MIT License - See LICENSE file for details
 ## Contributing
 
 This platform is built for Atria Summer of Code. Contributions are welcome!
-
----
-
-Built with ❤️ by **Apex Community** × **OSCode**
